@@ -44,11 +44,10 @@ public class EIELValidationPanel extends gvWindow {
 
 
 	public EIELValidationPanel(){
-		super();
+		super(600, 500);
 		formBody = new FormPanel("validationGUI.jfrm");
 		formBody.setVisible(true);
 		this.add(formBody, BorderLayout.CENTER);
-
 		this.setTitle("Validaciones");
 		initWidgets();
 	}
