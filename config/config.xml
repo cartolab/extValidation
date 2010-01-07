@@ -8,7 +8,7 @@
 	<resourceBundle name="text"/>
 	<extensions>
 		<extension class-name="es.udc.cartolab.gvsig.eielvalidation.EIELValidationExtension" description="Validar" active="true">
-			<menu text="EIEL"
+			<menu text="EIEL/Validar"
 				action-command="Validar"
 				icon="" position="1601"/> 
 		</extension>

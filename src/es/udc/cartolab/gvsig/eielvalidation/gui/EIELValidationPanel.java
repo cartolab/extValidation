@@ -1,9 +1,13 @@
 package es.udc.cartolab.gvsig.eielvalidation.gui;
 
+import java.awt.BorderLayout;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
+import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.border.Border;
 
 import com.jeta.forms.components.panel.FormPanel;
 
@@ -40,16 +44,21 @@ public class EIELValidationPanel extends gvWindow {
 
 
 	public EIELValidationPanel(){
-		java.io.File file = new java.io.File("validationGUI.jfrm");
-		System.out.println(file.exists() + "  " + file.getAbsolutePath());
-		//formBody = new FormPanel("validationGUI.jfrm");
-		formBody = new FormPanel("/home/uve/openGisEIEL/_fwAndami/gvSIG/extensiones/es.udc.cartolab.eielvalidation/validationGUI.jfrm");
+		super();
+		formBody = new FormPanel("validationGUI.jfrm");
+		formBody.setVisible(true);
+		this.add(formBody, BorderLayout.CENTER);
+
+		this.setTitle("Validaciones");
 		initWidgets();
-		this.add(formBody);
 	}
 
 	public void initWidgets() {
 		councilCB = ((JComboBox)formBody.getComponentByName( ID_COUNCILCB));
+		councilCB.setVisible(true);
+		System.out.println(councilCB.getHeight());
+		System.out.println(councilCB.getWidth());
+		System.out.println(councilCB.getX());
 		//councilCB.setEditable(true);
 		//councilCB.removeAllItems();
 		validationTB = ((JTable)formBody.getComponentByName( ID_VALIDATIONTB));
