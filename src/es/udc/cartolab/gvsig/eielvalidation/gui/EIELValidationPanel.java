@@ -1,6 +1,7 @@
 package es.udc.cartolab.gvsig.eielvalidation.gui;
 
 import java.awt.BorderLayout;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -10,6 +11,8 @@ import javax.swing.JTable;
 import javax.swing.border.Border;
 
 import com.jeta.forms.components.panel.FormPanel;
+
+import es.udc.cartolab.gvsig.users.utils.DBSession;
 
 public class EIELValidationPanel extends gvWindow {
 
@@ -50,14 +53,28 @@ public class EIELValidationPanel extends gvWindow {
 		this.add(formBody, BorderLayout.CENTER);
 		this.setTitle("Validaciones");
 		initWidgets();
+		initValues();
 	}
 
+	public void initValues() {
+		
+		DBSession dbs = DBSession.getCurrentSession();
+		String[] councils = null;
+		try {
+			councils = dbs.getDistinctValues("municipio", "denominaci");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		//TODO Add "Todos" to text.properties file
+		councilCB.addItem("Todos");
+		for (int i = 0; i < councils.length; i++){
+			councilCB.addItem(councils[i]);
+		}
+	}
+	
 	public void initWidgets() {
 		councilCB = ((JComboBox)formBody.getComponentByName( ID_COUNCILCB));
-		councilCB.setVisible(true);
-		System.out.println(councilCB.getHeight());
-		System.out.println(councilCB.getWidth());
-		System.out.println(councilCB.getX());
 		//councilCB.setEditable(true);
 		//councilCB.removeAllItems();
 		validationTB = ((JTable)formBody.getComponentByName( ID_VALIDATIONTB));
