@@ -1,28 +1,37 @@
 package es.udc.cartolab.gvsig.eielvalidation.gui;
 
 import java.awt.BorderLayout;
+import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import com.iver.cit.gvsig.project.documents.table.gui.TableModel;
 import com.jeta.forms.components.panel.FormPanel;
 
 import es.udc.cartolab.gvsig.users.utils.DBSession;
 
-public class EIELValidationPanel extends gvWindow {
+public class EIELValidationPanel extends gvWindow implements TableModelListener{
 
     private FormPanel formBody;
 	
 	public final String ID_COUNCILCB = "councilCB";
 	private JComboBox councilCB;
-
+	
+	public final String ID_SELECTLA = "selectLA";
+	private JLabel selectLA;
+	
 	public final String ID_VALIDATIONTB = "validationTB";
 	private JTable validationTB;
 
@@ -83,6 +92,9 @@ public class EIELValidationPanel extends gvWindow {
 		String[] columnNames = {"NUM", "COD", "GR", "Descripcion"};
 		
 		model.setRowCount(0);
+		validationTB.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		validationTB.setRowSelectionAllowed(true);
+		validationTB.setColumnSelectionAllowed(false);
 		
 		//TODO Add CHECKBOX, GROUP and SQL? column!!!
 		
@@ -99,10 +111,10 @@ public class EIELValidationPanel extends gvWindow {
 		((DefaultTableModel)validationTB.getModel()).addColumn(column03);
 		
 		validationTB.getColumnModel().getColumn(0).setHeaderValue(columnNames[0]);
-		validationTB.getColumnModel().getColumn(0).setMaxWidth(50);
+		validationTB.getColumnModel().getColumn(0).setMaxWidth(40);
 		validationTB.getColumnModel().getColumn(1).setHeaderValue(columnNames[1]);
-		validationTB.getColumnModel().getColumn(1).setMinWidth(220);
-		validationTB.getColumnModel().getColumn(1).setMinWidth(250);
+		validationTB.getColumnModel().getColumn(1).setMinWidth(90);
+		validationTB.getColumnModel().getColumn(1).setMaxWidth(110);
 		validationTB.getColumnModel().getColumn(2).setHeaderValue(columnNames[2]);
 		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
 		validationTB.getColumnModel().getColumn(3).setHeaderValue(columnNames[3]);
@@ -135,19 +147,39 @@ public class EIELValidationPanel extends gvWindow {
 				}
 				model.addRow(row);
 			}
-			model.fireTableRowsInserted(0, model.getRowCount()-1);
-
+			model.fireTableRowsInserted(0, model.getRowCount()-1);			
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		validationTB.getModel().addTableModelListener(this);
+		refreshSelectCount();
+	}
+	
+	private void refreshSelectCount(){
+		String text = "Validaciones   ";
+		int count = 0;
+		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+		for (int i = 0; i < model.getRowCount(); i++){
+			Object value = model.getValueAt(i, 0);
+			if (value instanceof Boolean && (Boolean)value){
+				count++;
+			}
+		}
+		if (count == 1) {
+			selectLA.setText(text + "(" + count + " seleccionada)");
+		} else {
+			selectLA.setText(text + "(" + count + " seleccionadas)");
+		}
 	}
 	
 	public void initWidgets() {
 		councilCB = ((JComboBox)formBody.getComponentByName( ID_COUNCILCB));
 		//councilCB.setEditable(true);
 		//councilCB.removeAllItems();
+		selectLA = ((JLabel) formBody.getComponentByName(ID_SELECTLA));
 		validationTB = ((JTable)formBody.getComponentByName( ID_VALIDATIONTB));
 		//initJTable(validationTB, "NNNNNNNNNNNNN");
 		//validationTB.addMouseListener(this);
@@ -158,6 +190,14 @@ public class EIELValidationPanel extends gvWindow {
 		selectSaveB = ((JButton)formBody.getComponentByName( ID_SELECTSAVEB));
 		exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
 		validateB = ((JButton)formBody.getComponentByName( ID_VALIDATEB));
+	}
+
+	public void tableChanged(TableModelEvent e) {
+//		int row = e.getFirstRow();
+//		int column = e.getColumn();
+//		DefaultTableModel model = (DefaultTableModel)e.getSource();
+//		System.out.println(model.getValueAt(row, column));
+		refreshSelectCount();
 	}
 
 }

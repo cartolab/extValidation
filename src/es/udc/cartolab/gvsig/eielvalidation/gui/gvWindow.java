@@ -12,16 +12,24 @@ public class gvWindow extends JPanel implements IWindow {
 
 	protected WindowInfo viewInfo = null;
 	private boolean INITIAL_SIZE = false;
-	private int width = 0;
-	private int height = 0;
+	private int width = 400;
+	private int height = 400;
 
 	public gvWindow(){
-		viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+		this(400, 400, true);
 	}
 
 	public gvWindow(int width, int height){
+		this(width, height, true);
+	}
+	
+	public gvWindow(int width, int height, boolean resizable){
 		INITIAL_SIZE = true;
-		viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.PALETTE);
+		if (resizable) {
+			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.PALETTE);
+		} else {
+			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+		}
 		this.width = width;
 		this.height = height;
 	}
