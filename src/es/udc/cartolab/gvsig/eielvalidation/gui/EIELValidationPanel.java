@@ -131,7 +131,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//Table content
 
 		try {
-			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "1 = 1 ORDER BY codigo");
+			//String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "1 = 1 AND codigo ORDER BY codigo");
+			//[NachoV] Now only retrieves MAP validations
+			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "codigo SIMILAR TO 'MAP%'ORDER BY codigo");
 
 			int numRows = 0;
 			for (int i=0; i<tableContent.length; i++) {
@@ -225,6 +227,74 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		refreshSelectCount();
 	}
 
+	private void executeValidations() {
+		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+		String OLD_SCHEMA = "EIEL_MUNICIPAL";
+		String NEW_SCHEMA = "eiel_map_municipal";
+		
+		try {
+			DBSession dbs = DBSession.getCurrentSession();
+			String council = (String)councilCB.getSelectedItem();
+			StringBuffer sf = new StringBuffer();
+			if (council.equals(ALL_COUNCILS)){
+				//TODO
+				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+				for (int i = 0; i < model.getRowCount(); i++){
+					Object isChecked = model.getValueAt(i, 0);
+					if (isChecked instanceof Boolean && (Boolean)isChecked){
+						// Get CODE of the validation
+						String code = (String) model.getValueAt(i, 1);
+
+						String[][] tableContent = dbs.getTable("validacion_consultas", 
+								"eiel_aplicaciones", 
+								"codigo = '"+ code + "'");
+						String query = tableContent[0][1];
+						// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.						
+						query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
+
+						Connection con = dbs.getJavaConnection();
+						Statement stat = con.createStatement();
+
+						ResultSet rs = stat.executeQuery(query);
+
+						//COPY FROM DBSession.getTable()
+						String text = "";
+						DatabaseMetaData metadataDB = con.getMetaData();
+						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
+						List<String> fieldNames = new ArrayList<String>();
+
+						while (columns.next()) {
+							fieldNames.add(columns.getString("Column_Name"));
+						}
+						while (rs.next()) {
+							for (int j=0; j<fieldNames.size(); j++) {
+								String val = rs.getString(fieldNames.get(j));
+								if (val == null || val.compareTo("")==0) {
+									val = " ";
+								}
+								text = text + val + "|";
+							}
+							text = text + "|#|";
+							//text = text + rs.getString(fieldNames[fieldNames.length-1]);
+						}
+						rs.close();
+
+						sf.append("<h4 style=\"color: blue\">" + code + "</h4>");
+						sf.append("<p style=\"color: green\">>" + tableContent[0][1] + "</p>");
+						sf.append("<p style=\"color: red\">>" + text + "</p>");
+					}
+				}
+			} else {
+				//TODO
+			}
+			sf.append("<hr>");
+			resultTA.setText(sf.toString());
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == selectAllB){
 			changeValidationSets(true);
@@ -248,65 +318,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		if (e.getSource() == validateB){
 			//TODO
-			try {
-				DBSession dbs = DBSession.getCurrentSession();
-				String council = (String)councilCB.getSelectedItem();
-				StringBuffer sf = new StringBuffer();
-				if (council.equals(ALL_COUNCILS)){
-					//TODO
-					DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-					for (int i = 0; i < model.getRowCount(); i++){
-						Object isChecked = model.getValueAt(i, 0);
-						if (isChecked instanceof Boolean && (Boolean)isChecked){
-							// Get CODE of the validation
-							String code = (String) model.getValueAt(i, 1);
-
-							String[][] tableContent = dbs.getTable("validacion_consultas", 
-								"eiel_aplicaciones", 
-								"codigo = '"+ code + "'");
-							String query = tableContent[0][1];
-							
-							Connection con = dbs.getJavaConnection();
-							Statement stat = con.createStatement();
-
-							ResultSet rs = stat.executeQuery(query);
-
-							//COPY FROM DBSession.getTable()
-							String text = "";
-							DatabaseMetaData metadataDB = con.getMetaData();
-							ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
-							List<String> fieldNames = new ArrayList<String>();
-
-							while (columns.next()) {
-								fieldNames.add(columns.getString("Column_Name"));
-							}
-							while (rs.next()) {
-								for (int j=0; j<fieldNames.size(); j++) {
-									String val = rs.getString(fieldNames.get(j));
-									if (val == null || val.compareTo("")==0) {
-										val = " ";
-									}
-									text = text + val + "|";
-								}
-								text = text + "|#|";
-								//text = text + rs.getString(fieldNames[fieldNames.length-1]);
-							}
-							rs.close();
-
-							sf.append("<h4 style=\"color: blue\">" + code + "</h4>");
-							sf.append("<p style=\"color: green\">>" + tableContent[0][1] + "</p>");
-							sf.append("<p style=\"color: red\">>" + text + "</p>");
-						}
-					}
-				} else {
-					//TODO
-				}
-				sf.append("<hr>");
-				resultTA.setText(sf.toString());
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			executeValidations();
 			return;
 
 		}
@@ -316,5 +328,4 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			return;
 		}
 	}
-
 }
