@@ -3,6 +3,8 @@ package es.udc.cartolab.gvsig.eielvalidation.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -22,6 +24,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import com.iver.andami.PluginServices;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
 import com.jeta.forms.components.panel.FormPanel;
 
@@ -30,6 +33,8 @@ import es.udc.cartolab.gvsig.users.utils.DBSession;
 public class EIELValidationPanel extends gvWindow implements TableModelListener, ActionListener{
 
 	private final String ALL_COUNCILS = "** Todos **";
+
+	private String TYPE_OF_VALIDATION = "VOL";
 
 	private FormPanel formBody;
 
@@ -118,9 +123,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		((DefaultTableModel)validationTB.getModel()).addColumn(column03);
 
 		validationTB.getColumnModel().getColumn(0).setHeaderValue(columnNames[0]);
-		validationTB.getColumnModel().getColumn(0).setMaxWidth(40);
+		validationTB.getColumnModel().getColumn(0).setMaxWidth(35);
 		validationTB.getColumnModel().getColumn(1).setHeaderValue(columnNames[1]);
-		validationTB.getColumnModel().getColumn(1).setMinWidth(90);
+		validationTB.getColumnModel().getColumn(1).setMinWidth(100);
 		validationTB.getColumnModel().getColumn(1).setMaxWidth(110);
 		validationTB.getColumnModel().getColumn(2).setHeaderValue(columnNames[2]);
 		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
@@ -133,7 +138,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		try {
 			//String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "1 = 1 AND codigo ORDER BY codigo");
 			//[NachoV] Now only retrieves MAP validations
-			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "codigo SIMILAR TO 'MAP%'ORDER BY codigo");
+			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "codigo SIMILAR TO '"+
+					TYPE_OF_VALIDATION +"%'ORDER BY codigo");
 
 			int numRows = 0;
 			for (int i=0; i<tableContent.length; i++) {
@@ -156,7 +162,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				}
 				model.addRow(row);
 			}
-			model.fireTableRowsInserted(0, model.getRowCount()-1);			
+			model.fireTableRowsInserted(0, model.getRowCount()-1);
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -197,6 +203,18 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//councilCB.removeAllItems();
 		selectLA = ((JLabel) formBody.getComponentByName(ID_SELECTLA));
 		validationTB = ((JTable)formBody.getComponentByName( ID_VALIDATIONTB));
+		validationTB.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e){
+				if (e.getClickCount() == 2){
+					JTable target = (JTable)e.getSource();
+					int rowIndex = target.getSelectedRow();
+					// Codigo are on column = 1 on the JTable qPanel
+					String code = (String) target.getModel().getValueAt(rowIndex, 1);
+					EIELValidationSQLPanel sqlPanel = new EIELValidationSQLPanel(code);
+					PluginServices.getMDIManager().addWindow(sqlPanel);
+				}
+			}
+		} );
 		//initJTable(validationTB, "NNNNNNNNNNNNN");
 		//validationTB.addMouseListener(this);
 		resultTA = ((JEditorPane)formBody.getComponentByName( ID_RESULTTA));
@@ -229,13 +247,13 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	private void executeValidations() {
 		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-		String OLD_SCHEMA = "EIEL_MUNICIPAL";
+		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = "eiel_map_municipal";
-		
+
+		StringBuffer sf = new StringBuffer();
 		try {
 			DBSession dbs = DBSession.getCurrentSession();
 			String council = (String)councilCB.getSelectedItem();
-			StringBuffer sf = new StringBuffer();
 			if (council.equals(ALL_COUNCILS)){
 				//TODO
 				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
@@ -254,6 +272,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 						Connection con = dbs.getJavaConnection();
 						Statement stat = con.createStatement();
+
+						System.out.println(query);
 
 						ResultSet rs = stat.executeQuery(query);
 
@@ -280,21 +300,22 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						rs.close();
 
 						sf.append("<h4 style=\"color: blue\">" + code + "</h4>");
-						sf.append("<p style=\"color: green\">>" + tableContent[0][1] + "</p>");
-						sf.append("<p style=\"color: red\">>" + text + "</p>");
+						sf.append("<p style=\"color: green\">" + tableContent[0][1] + "</p>");
+						sf.append("<p style=\"color: red\">" + text + "</p>");
 					}
 				}
 			} else {
 				//TODO
-			}
-			sf.append("<hr>");
-			resultTA.setText(sf.toString());
+			}			
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
+			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
 			e1.printStackTrace();
 		}
+		sf.append("<hr>");
+		resultTA.setText(sf.toString());
 	}
-	
+
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == selectAllB){
 			changeValidationSets(true);

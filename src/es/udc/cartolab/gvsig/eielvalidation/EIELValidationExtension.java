@@ -10,8 +10,8 @@ public class EIELValidationExtension extends Extension {
 
 	public void execute(String actionCommand) {
 		// TODO Auto-generated method stub
-		EIELValidationPanel addEventThemePanel = new EIELValidationPanel();
-		PluginServices.getMDIManager().addWindow(addEventThemePanel);
+		EIELValidationPanel validationPanel = new EIELValidationPanel();
+		PluginServices.getMDIManager().addWindow(validationPanel);
 	}
 
 	public void initialize() {
