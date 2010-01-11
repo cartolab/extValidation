@@ -46,7 +46,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 
 
 	public EIELValidationSQLPanel(String code){
-		super(500, 500);
+		super(500, 400);
 		formBody = new FormPanel("validationSQL.jfrm");
 		formBody.setVisible(true);
 		this.validation_code = code;
