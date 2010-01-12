@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -262,6 +263,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 					if (isChecked instanceof Boolean && (Boolean)isChecked){
 						// Get CODE of the validation
 						String code = (String) model.getValueAt(i, 1);
+						String description = (String) model.getValueAt(i,3);
+						sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
 
 						String[][] tableContent = dbs.getTable("validacion_consultas", 
 								"eiel_aplicaciones", 
@@ -276,32 +279,39 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						System.out.println(query);
 
 						ResultSet rs = stat.executeQuery(query);
+						rs.next();
+						int row = rs.getRow();
+						
 
 						//COPY FROM DBSession.getTable()
 						String text = "";
 						DatabaseMetaData metadataDB = con.getMetaData();
 						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
-						List<String> fieldNames = new ArrayList<String>();
-
-						while (columns.next()) {
+						ArrayList<String> fieldNames = new ArrayList<String>();
+						
+						/*while (columns.next()) {
 							fieldNames.add(columns.getString("Column_Name"));
-						}
-						while (rs.next()) {
+						}*/
+						//while (rs.next()) {
+						int aux = fieldNames.size();
 							for (int j=0; j<fieldNames.size(); j++) {
 								String val = rs.getString(fieldNames.get(j));
-								if (val == null || val.compareTo("")==0) {
-									val = " ";
-								}
+								//if (val == null || val.compareTo("")==0) {
+									//val = " ";
+								//}
 								text = text + val + "|";
 							}
 							text = text + "|#|";
 							//text = text + rs.getString(fieldNames[fieldNames.length-1]);
-						}
+						//}
 						rs.close();
-
-						sf.append("<h4 style=\"color: blue\">" + code + "</h4>");
-						sf.append("<p style=\"color: green\">" + tableContent[0][1] + "</p>");
-						sf.append("<p style=\"color: red\">" + text + "</p>");
+						
+						if (row == 0) {
+							sf.append("<p style=\"color: green\">" + "Validation OK" + "</p>");	
+						}else {
+							sf.append("<p style=\"color: red\">" + rs.getString(1) + "</p>");
+							sf.append("<p style=\"color: red\">" + text + "</p>");
+						}	
 					}
 				}
 			} else {
