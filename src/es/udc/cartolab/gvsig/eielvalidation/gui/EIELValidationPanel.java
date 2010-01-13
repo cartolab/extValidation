@@ -13,6 +13,7 @@ import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -298,23 +299,31 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
 						ArrayList<String> fieldNames = new ArrayList<String>();
 						
-						while (columns.next()) {
+						ResultSetMetaData metaData = rs.getMetaData();
+						int numColumns = metaData.getColumnCount();
+						String tableName = metaData.getTableName(1);
+						
+						/*while (columns.next()) {
 							fieldNames.add(columns.getString("Column_Name"));
+						}*/
+						
+						//Getting the field names of the table
+						for (int k=0; k<numColumns; k++)
+						{
+							text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
 						}
+						text = text + "</tr>";
+						
+						//Getting values of the rows that have failed
 						while (rs.next()) {
 							row = rs.getRow();
 							validationsFail = validationsFail + 1;
 							text = text + "<tr>";
-							for (int j=1; j<fieldNames.size(); j++) {
+							for (int j=1; j<=numColumns; j++) {
 								String val = rs.getString(j);
-								//if (val == null || val.compareTo("")==0) {
-									//val = " ";
-								//}
 								text = text + "<td>" + val + "</td>";
 							}
 							text = text + "</tr>";
-							//text = text + "|#|";
-							//text = text + rs.getString(fieldNames[fieldNames.length-1]);
 						}
 						text = text + "</table>";
 						rs.close();
@@ -322,8 +331,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						if (row == 0) {
 							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");	
 						}else {
-							//sf.append("<p style=\"color: red\">" + rs.getString(1) + "</p>");
-							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + "</p>");
+							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
 							sf.append(text);
 						}	
 					}
@@ -337,10 +345,10 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			e1.printStackTrace();
 		}
 		if (validationsFail == 1) {
-			sf.append("<h2 style=\"color: red\">" + validationsFail + " " + PluginServices.getText(this, "validationFailOne")  + "</h2>");
+			sf.append("<h2 style=\"color: red\">" + (validationsFail) + " " + PluginServices.getText(this, "validationFailOne")  + "</h2>");
 			sf.append("<hr>");
 		} else if (validationsFail > 1) {
-			sf.append("<h2 style=\"color: red\">" + validationsFail + " " + PluginServices.getText(this, "validationFailNumber")  + "</h2>");
+			sf.append("<h2 style=\"color: red\">" + (validationsFail-1) + " " + PluginServices.getText(this, "validationFailNumber")  + "</h2>");
 			sf.append("<hr>");
 		} else {
 			sf.append("<hr>");
