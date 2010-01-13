@@ -5,6 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -17,13 +21,16 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.text.html.HTMLWriter;
 
 import com.iver.andami.PluginServices;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
@@ -232,7 +239,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		selectSaveB.setVisible(false);
 		selectSaveB.addActionListener(this);
 		exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
-		exportB.setVisible(false);
+		exportB.setVisible(true);
 		exportB.addActionListener(this);
 		validateB = ((JButton)formBody.getComponentByName( ID_VALIDATEB));
 		validateB.addActionListener(this);
@@ -249,8 +256,10 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	private void executeValidations() {
 		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 
-String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
+		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = "eiel_map_municipal";
+		
+		int validationsFail = 0;
 
 		StringBuffer sf = new StringBuffer();
 		try {
@@ -282,7 +291,6 @@ String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 						ResultSet rs = stat.executeQuery(query);
 						//rs.next();
 						int row = 0;
-						
 
 						//COPY FROM DBSession.getTable()
 						String text = "<table border=\"1\"><tr>";
@@ -295,6 +303,7 @@ String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 						}
 						while (rs.next()) {
 							row = rs.getRow();
+							validationsFail = validationsFail + 1;
 							text = text + "<tr>";
 							for (int j=1; j<fieldNames.size(); j++) {
 								String val = rs.getString(j);
@@ -327,7 +336,15 @@ String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
 			e1.printStackTrace();
 		}
-		sf.append("<hr>");
+		if (validationsFail == 1) {
+			sf.append("<h2 style=\"color: red\">" + validationsFail + " " + PluginServices.getText(this, "validationFailOne")  + "</h2>");
+			sf.append("<hr>");
+		} else if (validationsFail > 1) {
+			sf.append("<h2 style=\"color: red\">" + validationsFail + " " + PluginServices.getText(this, "validationFailNumber")  + "</h2>");
+			sf.append("<hr>");
+		} else {
+			sf.append("<hr>");
+		}
 		resultTA.setText(sf.toString());
 	}
 
@@ -361,6 +378,21 @@ String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 
 		if (e.getSource() == exportB){
 			//TODO
+			JFileChooser fc = new JFileChooser();
+			fc.showSaveDialog(fc);
+			File fFile=fc.getSelectedFile();
+			String filePath = fFile.getPath();
+			FileOutputStream fo;
+			try {
+				fo = new FileOutputStream(filePath);
+				PrintStream ps=new PrintStream(fo);
+				ps.println(resultTA.getText());
+				ps.close();
+				fo.close();
+			} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+			}		
 			return;
 		}
 	}
