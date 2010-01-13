@@ -248,7 +248,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	private void executeValidations() {
 		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
+
+String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = "eiel_map_municipal";
 
 		StringBuffer sf = new StringBuffer();
@@ -279,38 +280,42 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						System.out.println(query);
 
 						ResultSet rs = stat.executeQuery(query);
-						rs.next();
-						int row = rs.getRow();
+						//rs.next();
+						int row = 0;
 						
 
 						//COPY FROM DBSession.getTable()
-						String text = "";
+						String text = "<table border=\"1\"><tr>";
 						DatabaseMetaData metadataDB = con.getMetaData();
 						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
 						ArrayList<String> fieldNames = new ArrayList<String>();
 						
-						/*while (columns.next()) {
+						while (columns.next()) {
 							fieldNames.add(columns.getString("Column_Name"));
-						}*/
-						//while (rs.next()) {
-						int aux = fieldNames.size();
-							for (int j=0; j<fieldNames.size(); j++) {
-								String val = rs.getString(fieldNames.get(j));
+						}
+						while (rs.next()) {
+							row = rs.getRow();
+							text = text + "<tr>";
+							for (int j=1; j<fieldNames.size(); j++) {
+								String val = rs.getString(j);
 								//if (val == null || val.compareTo("")==0) {
 									//val = " ";
 								//}
-								text = text + val + "|";
+								text = text + "<td>" + val + "</td>";
 							}
-							text = text + "|#|";
+							text = text + "</tr>";
+							//text = text + "|#|";
 							//text = text + rs.getString(fieldNames[fieldNames.length-1]);
-						//}
+						}
+						text = text + "</table>";
 						rs.close();
 						
 						if (row == 0) {
-							sf.append("<p style=\"color: green\">" + "Validation OK" + "</p>");	
+							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");	
 						}else {
-							sf.append("<p style=\"color: red\">" + rs.getString(1) + "</p>");
-							sf.append("<p style=\"color: red\">" + text + "</p>");
+							//sf.append("<p style=\"color: red\">" + rs.getString(1) + "</p>");
+							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + "</p>");
+							sf.append(text);
 						}	
 					}
 				}
