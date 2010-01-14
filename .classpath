@@ -6,6 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/_fwAndami"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/libFMap"/>
 	<classpathentry kind="src" path="/extUsers"/>
-	<classpathentry kind="lib" path="/extEIELForms/lib/formsrt.jar"/>
+	<classpathentry kind="lib" path="lib/formsrt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
