@@ -3,8 +3,6 @@ package es.udc.cartolab.gvsig.eielvalidation.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -14,17 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
-import javax.swing.JLabel;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 
-import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
 import com.jeta.forms.components.panel.FormPanel;
 
 import es.udc.cartolab.gvsig.users.utils.DBSession;
@@ -32,7 +21,7 @@ import es.udc.cartolab.gvsig.users.utils.DBSession;
 public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 
 	private String validation_code = null;
-	
+
 	private FormPanel formBody = null;
 
 	public final String ID_DESCRIPTIONTA = "descriptionTA";
@@ -47,7 +36,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 
 	public EIELValidationSQLPanel(String code){
 		super(500, 400);
-		formBody = new FormPanel("validationSQL.jfrm");
+		formBody = new FormPanel("forms/validationSQL.jfrm");
 		formBody.setVisible(true);
 		this.validation_code = code;
 		this.add(formBody, BorderLayout.CENTER);
@@ -85,11 +74,11 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 		StringBuffer sf = new StringBuffer();
 		try {
 			DBSession dbs = DBSession.getCurrentSession();
-			String[][] tableContent = dbs.getTable("validacion_consultas", 
-					"eiel_aplicaciones", 
+			String[][] tableContent = dbs.getTable("validacion_consultas",
+					"eiel_aplicaciones",
 					"codigo = '"+ validation_code + "'");
 			String query = tableContent[0][1];
-			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.						
+			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 			query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
 			Connection con = dbs.getJavaConnection();
@@ -111,7 +100,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 			while (rs.next()) {
 				for (int j=0; j<fieldNames.size(); j++) {
 					String val = rs.getString(fieldNames.get(j));
-					if (val == null || val.compareTo("")==0) {
+					if ((val == null) || (val.compareTo("")==0)) {
 						val = " ";
 					}
 					text = text + val + "|";

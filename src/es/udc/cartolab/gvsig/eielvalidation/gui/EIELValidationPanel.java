@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -17,24 +16,20 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.text.html.HTMLWriter;
 
 import com.iver.andami.PluginServices;
-import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
 import com.jeta.forms.components.panel.FormPanel;
 
 import es.udc.cartolab.gvsig.users.utils.DBSession;
@@ -80,7 +75,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	public EIELValidationPanel(){
 		super(800, 500);
-		formBody = new FormPanel("validationGUI.jfrm");
+		formBody = new FormPanel("forms/validationGUI.jfrm");
 		formBody.setVisible(true);
 		this.add(formBody, BorderLayout.CENTER);
 		this.setTitle("Validaciones");
@@ -107,7 +102,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			councilCB.addItem(councils[i]);
 		}
 
-		// VALIDATIONS TABLE		
+		// VALIDATIONS TABLE
 		DefaultTableModel model = new ValidationTableModel();
 		validationTB.setModel(model);
 		String[] columnNames = {"NUM", "COD", "GR", "Descripcion"};
@@ -188,7 +183,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
 		for (int i = 0; i < model.getRowCount(); i++){
 			Object value = model.getValueAt(i, 0);
-			if (value instanceof Boolean && (Boolean)value){
+			if ((value instanceof Boolean) && (Boolean)value){
 				count++;
 			}
 		}
@@ -213,6 +208,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		selectLA = ((JLabel) formBody.getComponentByName(ID_SELECTLA));
 		validationTB = ((JTable)formBody.getComponentByName( ID_VALIDATIONTB));
 		validationTB.addMouseListener(new MouseAdapter(){
+			@Override
 			public void mouseClicked(MouseEvent e){
 				if (e.getClickCount() == 2){
 					JTable target = (JTable)e.getSource();
@@ -259,7 +255,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = "eiel_map_municipal";
-		
+
 		int validationsFail = 0;
 
 		StringBuffer sf = new StringBuffer();
@@ -271,17 +267,17 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
 				for (int i = 0; i < model.getRowCount(); i++){
 					Object isChecked = model.getValueAt(i, 0);
-					if (isChecked instanceof Boolean && (Boolean)isChecked){
+					if ((isChecked instanceof Boolean) && (Boolean)isChecked){
 						// Get CODE of the validation
 						String code = (String) model.getValueAt(i, 1);
 						String description = (String) model.getValueAt(i,3);
 						sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
 
-						String[][] tableContent = dbs.getTable("validacion_consultas", 
-								"eiel_aplicaciones", 
+						String[][] tableContent = dbs.getTable("validacion_consultas",
+								"eiel_aplicaciones",
 								"codigo = '"+ code + "'");
 						String query = tableContent[0][1];
-						// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.						
+						// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 						query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
 						Connection con = dbs.getJavaConnection();
@@ -298,22 +294,22 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						DatabaseMetaData metadataDB = con.getMetaData();
 						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
 						ArrayList<String> fieldNames = new ArrayList<String>();
-						
+
 						ResultSetMetaData metaData = rs.getMetaData();
 						int numColumns = metaData.getColumnCount();
 						String tableName = metaData.getTableName(1);
-						
+
 						/*while (columns.next()) {
 							fieldNames.add(columns.getString("Column_Name"));
 						}*/
-						
+
 						//Getting the field names of the table
 						for (int k=0; k<numColumns; k++)
 						{
 							text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
 						}
 						text = text + "</tr>";
-						
+
 						//Getting values of the rows that have failed
 						while (rs.next()) {
 							row = rs.getRow();
@@ -327,18 +323,18 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						}
 						text = text + "</table>";
 						rs.close();
-						
+
 						if (row == 0) {
-							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");	
+							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
 						}else {
 							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
 							sf.append(text);
-						}	
+						}
 					}
 				}
 			} else {
 				//TODO
-			}			
+			}
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
@@ -398,9 +394,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				ps.close();
 				fo.close();
 			} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-			}		
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			return;
 		}
 	}
