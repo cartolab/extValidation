@@ -20,15 +20,14 @@ public class EIELValidationExtension extends Extension {
 	}
 
 	public boolean isEnabled() {
-//		if (DBSession.getCurrentSession() != null) {
+		if (DBSession.getCurrentSession() != null) {
 			return true;
-//		}else {
-//			return false;
-//		}
+		}else {
+			return false;
+		}
 	}
 
 	public boolean isVisible() {
-		// TODO Auto-generated method stub
 		return true;
 	}
 
