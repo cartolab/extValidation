@@ -60,4 +60,10 @@ public class gvWindow extends JPanel implements IWindow {
 	public void setTitle(String title){
 		viewInfo.setTitle(title);
 	}
+
+	@Override
+	public Object getWindowProfile() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
