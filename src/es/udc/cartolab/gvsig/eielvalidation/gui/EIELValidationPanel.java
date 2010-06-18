@@ -262,78 +262,85 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		try {
 			DBSession dbs = DBSession.getCurrentSession();
 			String council = (String)councilCB.getSelectedItem();
-			if (council.equals(ALL_COUNCILS)){
-				//TODO
-				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-				for (int i = 0; i < model.getRowCount(); i++){
-					Object isChecked = model.getValueAt(i, 0);
-					if ((isChecked instanceof Boolean) && (Boolean)isChecked){
-						// Get CODE of the validation
-						String code = (String) model.getValueAt(i, 1);
-						String description = (String) model.getValueAt(i,3);
-						sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
 
-						String[][] tableContent = dbs.getTable("validacion_consultas",
-								"eiel_aplicaciones",
-								"codigo = '"+ code + "'");
-						String query = tableContent[0][1];
-						// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-						query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
+			//TODO
+			DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+			for (int i = 0; i < model.getRowCount(); i++){
+				Object isChecked = model.getValueAt(i, 0);
+				if ((isChecked instanceof Boolean) && (Boolean)isChecked){
+					// Get CODE of the validation
+					String code = (String) model.getValueAt(i, 1);
+					String description = (String) model.getValueAt(i,3);
+					sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
 
-						Connection con = dbs.getJavaConnection();
-						Statement stat = con.createStatement();
+					String[][] tableContent = dbs.getTable("validacion_consultas",
+							"eiel_aplicaciones",
+							"codigo = '"+ code + "'");
+					String query = tableContent[0][1];
+					String whereC = tableContent[0][8];
+					String codigoConsulta =  tableContent[0][0];
+					// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+					query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
-						System.out.println(query);
+					Connection con = dbs.getJavaConnection();
+					Statement stat = con.createStatement();
 
-						ResultSet rs = stat.executeQuery(query);
-						//rs.next();
-						int row = 0;
+					if (!council.equals(ALL_COUNCILS)){
+						//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
+						whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]", council.toUpperCase());
+						//						whereC = "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='" + council +"' limit 1)";
+						query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
+					} else {
+						query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
+					}
+					System.out.println(codigoConsulta + ": " + query);
 
-						//COPY FROM DBSession.getTable()
-						String text = "<table border=\"1\"><tr>";
-						DatabaseMetaData metadataDB = con.getMetaData();
-						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
-						ArrayList<String> fieldNames = new ArrayList<String>();
+					ResultSet rs = stat.executeQuery(query);
+					//rs.next();
+					int row = 0;
 
-						ResultSetMetaData metaData = rs.getMetaData();
-						int numColumns = metaData.getColumnCount();
-						String tableName = metaData.getTableName(1);
+					//COPY FROM DBSession.getTable()
+					String text = "<table border=\"1\"><tr>";
+					DatabaseMetaData metadataDB = con.getMetaData();
+					ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
+					ArrayList<String> fieldNames = new ArrayList<String>();
 
-						/*while (columns.next()) {
+					ResultSetMetaData metaData = rs.getMetaData();
+					int numColumns = metaData.getColumnCount();
+					String tableName = metaData.getTableName(1);
+
+					/*while (columns.next()) {
 							fieldNames.add(columns.getString("Column_Name"));
 						}*/
 
-						//Getting the field names of the table
-						for (int k=0; k<numColumns; k++)
-						{
-							text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
+					//Getting the field names of the table
+					for (int k=0; k<numColumns; k++)
+					{
+						text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
+					}
+					text = text + "</tr>";
+
+					//Getting values of the rows that have failed
+					while (rs.next()) {
+						row = rs.getRow();
+						validationsFail = validationsFail + 1;
+						text = text + "<tr>";
+						for (int j=1; j<=numColumns; j++) {
+							String val = rs.getString(j);
+							text = text + "<td>" + val + "</td>";
 						}
 						text = text + "</tr>";
+					}
+					text = text + "</table>";
+					rs.close();
 
-						//Getting values of the rows that have failed
-						while (rs.next()) {
-							row = rs.getRow();
-							validationsFail = validationsFail + 1;
-							text = text + "<tr>";
-							for (int j=1; j<=numColumns; j++) {
-								String val = rs.getString(j);
-								text = text + "<td>" + val + "</td>";
-							}
-							text = text + "</tr>";
-						}
-						text = text + "</table>";
-						rs.close();
-
-						if (row == 0) {
-							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
-						}else {
-							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
-							sf.append(text);
-						}
+					if (row == 0) {
+						sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
+					}else {
+						sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
+						sf.append(text);
 					}
 				}
-			} else {
-				//TODO
 			}
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
