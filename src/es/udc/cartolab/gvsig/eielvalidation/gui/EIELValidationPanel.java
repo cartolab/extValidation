@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -12,12 +14,16 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingWorker;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
@@ -28,7 +34,7 @@ import com.jeta.forms.components.panel.FormPanel;
 
 import es.udc.cartolab.gvsig.users.utils.DBSession;
 
-public class EIELValidationPanel extends gvWindow implements TableModelListener, ActionListener{
+public class EIELValidationPanel extends gvWindow implements TableModelListener, ActionListener, PropertyChangeListener{
 
 	private final String ALL_COUNCILS = "** Todos **";
 
@@ -66,6 +72,165 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	public final String ID_VALIDATEB = "validateB";
 	private JButton validateB;
 
+	private JProgressBar progressBar;
+	private gvWindow progressBarDialog;
+
+	private class ValidateTask extends SwingWorker<String, Void> {
+
+		@Override
+		protected String doInBackground() throws Exception {
+
+			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+			String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
+			String NEW_SCHEMA = "eiel_map_municipal";
+
+			int validationsFail = 0;
+
+			StringBuffer sf = new StringBuffer();
+
+			try {
+				DBSession dbs = DBSession.getCurrentSession();
+				String council = (String)councilCB.getSelectedItem();
+
+				//TODO
+				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+
+				setProgress(0);
+
+				//get number of validations
+				int total=0;
+				for (int i = 0; i < model.getRowCount(); i++){
+					Object isChecked = model.getValueAt(i, 0);
+					if ((isChecked instanceof Boolean) && (Boolean)isChecked){
+						total++;
+					}
+				}
+
+				//check validations
+				int count=0;
+				for (int i = 0; i < model.getRowCount(); i++){
+					Object isChecked = model.getValueAt(i, 0);
+					if ((isChecked instanceof Boolean) && (Boolean)isChecked){
+						// Get CODE of the validation
+						String code = (String) model.getValueAt(i, 1);
+						String description = (String) model.getValueAt(i,3);
+						sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
+
+						String[][] tableContent = dbs.getTable("validacion_consultas",
+								"eiel_aplicaciones",
+								"codigo = '"+ code + "'");
+						String query = tableContent[0][1];
+						String whereC = tableContent[0][8];
+						String codigoConsulta =  tableContent[0][0];
+						// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+						query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
+
+						Connection con = dbs.getJavaConnection();
+						Statement stat = con.createStatement();
+
+						if (!council.equals(ALL_COUNCILS)){
+							//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
+							whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]", council.toUpperCase());
+							//						whereC = "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='" + council +"' limit 1)";
+							query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
+						} else {
+							query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
+						}
+						System.out.println(codigoConsulta + ": " + query);
+
+						ResultSet rs = stat.executeQuery(query);
+						//rs.next();
+						int row = 0;
+
+						//COPY FROM DBSession.getTable()
+						String text = "<table border=\"1\"><tr>";
+						DatabaseMetaData metadataDB = con.getMetaData();
+						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
+						ArrayList<String> fieldNames = new ArrayList<String>();
+
+						ResultSetMetaData metaData = rs.getMetaData();
+						int numColumns = metaData.getColumnCount();
+						String tableName = metaData.getTableName(1);
+
+						/*while (columns.next()) {
+								fieldNames.add(columns.getString("Column_Name"));
+							}*/
+
+						//Getting the field names of the table
+						for (int k=0; k<numColumns; k++)
+						{
+							text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
+						}
+						text = text + "</tr>";
+
+						//Getting values of the rows that have failed
+						while (rs.next()) {
+							row = rs.getRow();
+							validationsFail = validationsFail + 1;
+							text = text + "<tr>";
+							for (int j=1; j<=numColumns; j++) {
+								String val = rs.getString(j);
+								text = text + "<td>" + val + "</td>";
+							}
+							text = text + "</tr>";
+						}
+						text = text + "</table>";
+						rs.close();
+
+						if (row == 0) {
+							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
+						}else {
+							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
+							sf.append(text);
+						}
+						count++;
+						setProgress(count*100/total);
+					}
+				}
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
+				e1.printStackTrace();
+			}
+			if (validationsFail == 1) {
+				sf.append("<h2 style=\"color: red\">" + (validationsFail) + " " + PluginServices.getText(this, "validationFailOne")  + "</h2>");
+				sf.append("<hr>");
+			} else if (validationsFail > 1) {
+				sf.append("<h2 style=\"color: red\">" + (validationsFail-1) + " " + PluginServices.getText(this, "validationFailNumber")  + "</h2>");
+				sf.append("<hr>");
+			} else {
+				sf.append("<hr>");
+			}
+
+			//			resultTA.setText(sf.toString());
+			return sf.toString();
+		}
+
+		@Override
+		public void done() {
+			try {
+				String str = get();
+				PluginServices.getMDIManager().closeWindow(progressBarDialog);
+				EIELValidationResultPanel resultPanel;
+				if (councilCB.getSelectedIndex() > 0) {
+					resultPanel = new EIELValidationResultPanel(councilCB.getSelectedItem().toString());
+				} else {
+					resultPanel = new EIELValidationResultPanel();
+				}
+				PluginServices.getMDIManager().addCentredWindow(resultPanel);
+				resultPanel.setResult(str);
+				PluginServices.getMDIManager().restoreCursor();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+
+	}
 
 	public EIELValidationPanel(){
 		super(800, 500);
@@ -246,115 +411,26 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	}
 
 	private void executeValidations() {
-		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 
-		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
-		String NEW_SCHEMA = "eiel_map_municipal";
+		//create progress bar
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);
 
-		int validationsFail = 0;
+		JPanel panel = new JPanel();
+		panel.add(progressBar);
 
-		StringBuffer sf = new StringBuffer();
-		try {
-			DBSession dbs = DBSession.getCurrentSession();
-			String council = (String)councilCB.getSelectedItem();
+		progressBarDialog = new gvWindow(180, 30);
+		progressBarDialog.add(panel);
+		progressBarDialog.setTitle("Validando...");
+		PluginServices.getMDIManager().addCentredWindow(progressBarDialog);
 
-			//TODO
-			DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-			for (int i = 0; i < model.getRowCount(); i++){
-				Object isChecked = model.getValueAt(i, 0);
-				if ((isChecked instanceof Boolean) && (Boolean)isChecked){
-					// Get CODE of the validation
-					String code = (String) model.getValueAt(i, 1);
-					String description = (String) model.getValueAt(i,3);
-					sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
+		//start validation task
+		PluginServices.getMDIManager().setWaitCursor();
+		ValidateTask vt = new ValidateTask();
+		vt.addPropertyChangeListener(this);
+		vt.execute();
 
-					String[][] tableContent = dbs.getTable("validacion_consultas",
-							"eiel_aplicaciones",
-							"codigo = '"+ code + "'");
-					String query = tableContent[0][1];
-					String whereC = tableContent[0][8];
-					String codigoConsulta =  tableContent[0][0];
-					// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-					query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
-
-					Connection con = dbs.getJavaConnection();
-					Statement stat = con.createStatement();
-
-					if (!council.equals(ALL_COUNCILS)){
-						//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
-						whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]", council.toUpperCase());
-						//						whereC = "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='" + council +"' limit 1)";
-						query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
-					} else {
-						query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
-					}
-					System.out.println(codigoConsulta + ": " + query);
-
-					ResultSet rs = stat.executeQuery(query);
-					//rs.next();
-					int row = 0;
-
-					//COPY FROM DBSession.getTable()
-					String text = "<table border=\"1\"><tr>";
-					DatabaseMetaData metadataDB = con.getMetaData();
-					ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
-					ArrayList<String> fieldNames = new ArrayList<String>();
-
-					ResultSetMetaData metaData = rs.getMetaData();
-					int numColumns = metaData.getColumnCount();
-					String tableName = metaData.getTableName(1);
-
-					/*while (columns.next()) {
-							fieldNames.add(columns.getString("Column_Name"));
-						}*/
-
-					//Getting the field names of the table
-					for (int k=0; k<numColumns; k++)
-					{
-						text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
-					}
-					text = text + "</tr>";
-
-					//Getting values of the rows that have failed
-					while (rs.next()) {
-						row = rs.getRow();
-						validationsFail = validationsFail + 1;
-						text = text + "<tr>";
-						for (int j=1; j<=numColumns; j++) {
-							String val = rs.getString(j);
-							text = text + "<td>" + val + "</td>";
-						}
-						text = text + "</tr>";
-					}
-					text = text + "</table>";
-					rs.close();
-
-					if (row == 0) {
-						sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
-					}else {
-						sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
-						sf.append(text);
-					}
-				}
-			}
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
-			e1.printStackTrace();
-		}
-		if (validationsFail == 1) {
-			sf.append("<h2 style=\"color: red\">" + (validationsFail) + " " + PluginServices.getText(this, "validationFailOne")  + "</h2>");
-			sf.append("<hr>");
-		} else if (validationsFail > 1) {
-			sf.append("<h2 style=\"color: red\">" + (validationsFail-1) + " " + PluginServices.getText(this, "validationFailNumber")  + "</h2>");
-			sf.append("<hr>");
-		} else {
-			sf.append("<hr>");
-		}
-		EIELValidationResultPanel resultPanel = new EIELValidationResultPanel();
-		PluginServices.getMDIManager().addCentredWindow(resultPanel);
-		resultPanel.setResult(sf.toString());
-		//		resultTA.setText(sf.toString());
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -404,5 +480,15 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//			}
 		//			return;
 		//		}
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		// TODO Auto-generated method stub
+		Object obj = evt.getNewValue();
+		if (obj instanceof Integer) {
+			int progress = (Integer) evt.getNewValue();
+			progressBar.setValue(progress);
+		}
 	}
 }

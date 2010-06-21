@@ -23,8 +23,17 @@ public class EIELValidationResultPanel extends gvWindow implements ActionListene
 	private JButton exportB;
 
 	public EIELValidationResultPanel() {
+		this(null);
+	}
+
+	public EIELValidationResultPanel(String council) {
 
 		super(800, 500, false);
+		if (council != null && !council.equals("")) {
+			setTitle("Resultado de la validación de " + council);
+		} else {
+			setTitle("Resultado de la validación");
+		}
 
 		MigLayout layout = new MigLayout("inset 0, align center",
 				"[grow]",
