@@ -5,10 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -19,8 +15,6 @@ import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -51,8 +45,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	public final String ID_VALIDATIONTB = "validationTB";
 	private JTable validationTB;
 
-	public final String ID_RESULTTA = "resultTA";
-	private JEditorPane resultTA;
+	//	public final String ID_RESULTTA = "resultTA";
+	//	private JEditorPane resultTA;
 
 	public final String ID_SELECTALLB = "selectAllB";
 	private JButton selectAllB;
@@ -66,8 +60,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	public final String ID_SELECTSAVEB = "selectSaveB";
 	private JButton selectSaveB;
 
-	public final String ID_EXPORTB = "exportB";
-	private JButton exportB;
+	//	public final String ID_EXPORTB = "exportB";
+	//	private JButton exportB;
 
 	public final String ID_VALIDATEB = "validateB";
 	private JButton validateB;
@@ -223,9 +217,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		} );
 		//initJTable(validationTB, "NNNNNNNNNNNNN");
 		//validationTB.addMouseListener(this);
-		resultTA = ((JEditorPane)formBody.getComponentByName( ID_RESULTTA));
-		resultTA.setEditable(false);
-		resultTA.setContentType("text/html");
+		//		resultTA = ((JEditorPane)formBody.getComponentByName( ID_RESULTTA));
+		//		resultTA.setEditable(false);
+		//		resultTA.setContentType("text/html");
 		selectAllB = ((JButton)formBody.getComponentByName( ID_SELECTALLB));
 		selectAllB.addActionListener(this);
 		selectCleanB = ((JButton)formBody.getComponentByName( ID_SELECTCLEANB));
@@ -236,9 +230,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		selectSaveB = ((JButton)formBody.getComponentByName( ID_SELECTSAVEB));
 		selectSaveB.setVisible(false);
 		selectSaveB.addActionListener(this);
-		exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
-		exportB.setVisible(true);
-		exportB.addActionListener(this);
+		//		exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
+		//		exportB.setVisible(true);
+		//		exportB.addActionListener(this);
 		validateB = ((JButton)formBody.getComponentByName( ID_VALIDATEB));
 		validateB.addActionListener(this);
 	}
@@ -357,7 +351,10 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		} else {
 			sf.append("<hr>");
 		}
-		resultTA.setText(sf.toString());
+		EIELValidationResultPanel resultPanel = new EIELValidationResultPanel();
+		PluginServices.getMDIManager().addCentredWindow(resultPanel);
+		resultPanel.setResult(sf.toString());
+		//		resultTA.setText(sf.toString());
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -388,24 +385,24 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		}
 
-		if (e.getSource() == exportB){
-			//TODO
-			JFileChooser fc = new JFileChooser();
-			fc.showSaveDialog(fc);
-			File fFile=fc.getSelectedFile();
-			String filePath = fFile.getPath();
-			FileOutputStream fo;
-			try {
-				fo = new FileOutputStream(filePath);
-				PrintStream ps=new PrintStream(fo);
-				ps.println(resultTA.getText());
-				ps.close();
-				fo.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			return;
-		}
+		//		if (e.getSource() == exportB){
+		//			//TODO
+		//			JFileChooser fc = new JFileChooser();
+		//			fc.showSaveDialog(fc);
+		//			File fFile=fc.getSelectedFile();
+		//			String filePath = fFile.getPath();
+		//			FileOutputStream fo;
+		//			try {
+		//				fo = new FileOutputStream(filePath);
+		//				PrintStream ps=new PrintStream(fo);
+		//				ps.println(resultTA.getText());
+		//				ps.close();
+		//				fo.close();
+		//			} catch (IOException e1) {
+		//				// TODO Auto-generated catch block
+		//				e1.printStackTrace();
+		//			}
+		//			return;
+		//		}
 	}
 }
