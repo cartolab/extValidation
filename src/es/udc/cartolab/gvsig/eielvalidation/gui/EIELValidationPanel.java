@@ -134,6 +134,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		validationTB.getColumnModel().getColumn(2).setHeaderValue(columnNames[2]);
 		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
 		validationTB.getColumnModel().getColumn(3).setHeaderValue(columnNames[3]);
+		validationTB.getColumnModel().getColumn(3).setCellRenderer(new ValidationTableCellRenderer());
 
 		validationTB.repaint();
 
