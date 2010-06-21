@@ -85,6 +85,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			String NEW_SCHEMA = "eiel_map_municipal";
 
 			int validationsFail = 0;
+			int errorsFound = 0;
 
 			StringBuffer sf = new StringBuffer();
 
@@ -164,9 +165,10 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						text = text + "</tr>";
 
 						//Getting values of the rows that have failed
+						int oldErrors = errorsFound;
 						while (rs.next()) {
 							row = rs.getRow();
-							validationsFail = validationsFail + 1;
+							errorsFound++;
 							text = text + "<tr>";
 							for (int j=1; j<=numColumns; j++) {
 								String val = rs.getString(j);
@@ -176,6 +178,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 						}
 						text = text + "</table>";
 						rs.close();
+						if (errorsFound > oldErrors) {
+							validationsFail++;
+						}
 
 						if (row == 0) {
 							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
@@ -192,13 +197,18 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
 				e1.printStackTrace();
 			}
-			if (validationsFail == 1) {
-				sf.append("<h2 style=\"color: red\">" + (validationsFail) + " " + PluginServices.getText(this, "validationFailOne")  + "</h2>");
-				sf.append("<hr>");
-			} else if (validationsFail > 1) {
-				sf.append("<h2 style=\"color: red\">" + (validationsFail-1) + " " + PluginServices.getText(this, "validationFailNumber")  + "</h2>");
-				sf.append("<hr>");
-			} else {
+			if (validationsFail > 0) {
+				sf.append("<h2 style=\"color: red\">");
+				if (errorsFound > 1) {
+					if (validationsFail > 1) {
+						sf.append(String.format(PluginServices.getText(this, "validationFailNumber"), errorsFound, validationsFail));
+					} else {
+						sf.append(String.format(PluginServices.getText(this, "errorFailValidationOne"), errorsFound));
+					}
+				} else {
+					sf.append(PluginServices.getText(this, "validationFailOne"));
+				}
+				sf.append("</h2>");
 				sf.append("<hr>");
 			}
 
