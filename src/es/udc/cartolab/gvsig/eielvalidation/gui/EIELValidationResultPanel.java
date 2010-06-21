@@ -56,21 +56,23 @@ public class EIELValidationResultPanel extends gvWindow implements ActionListene
 		if (e.getSource() == exportB){
 			//TODO
 			JFileChooser fc = new JFileChooser();
-			fc.showSaveDialog(fc);
-			File fFile=fc.getSelectedFile();
-			String filePath = fFile.getPath();
-			FileOutputStream fo;
-			try {
-				fo = new FileOutputStream(filePath);
-				PrintStream ps=new PrintStream(fo);
-				ps.println(resultTA.getText());
-				ps.close();
-				fo.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			int answer = fc.showSaveDialog(fc);
+			if (answer == JFileChooser.APPROVE_OPTION) {
+				File fFile=fc.getSelectedFile();
+				String filePath = fFile.getPath();
+				FileOutputStream fo;
+				try {
+					fo = new FileOutputStream(filePath);
+					PrintStream ps=new PrintStream(fo);
+					ps.println(resultTA.getText());
+					ps.close();
+					fo.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				PluginServices.getMDIManager().closeWindow(this);
 			}
-			PluginServices.getMDIManager().closeWindow(this);
 			return;
 		}
 	}
