@@ -14,6 +14,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
@@ -28,6 +30,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 
 import com.iver.andami.PluginServices;
 import com.jeta.forms.components.panel.FormPanel;
@@ -44,6 +47,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	public final String ID_COUNCILCB = "councilCB";
 	private JComboBox councilCB;
+
+	public final String ID_CUADROCB = "cuadroCB";
+	private JComboBox cuadroCB;
 
 	public final String ID_SELECTLA = "selectLA";
 	private JLabel selectLA;
@@ -72,8 +78,10 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	public final String ID_VALIDATEB = "validateB";
 	private JButton validateB;
 
+
 	private JProgressBar progressBar;
 	private gvWindow progressBarDialog;
+	private TreeMap<Integer, List<Integer>> cuadros;
 
 	private class ValidateTask extends SwingWorker<String, Void> {
 
@@ -316,7 +324,23 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 					TYPE_OF_VALIDATION +"%'ORDER BY codigo");
 
 			int numRows = 0;
+			cuadros = new TreeMap<Integer, List<Integer>>();
 			for (int i=0; i<tableContent.length; i++) {
+				//obtener cuadro para el combobox
+				String cod = tableContent[i][0];
+				if (cod.matches(".*C[0-9][0-9].*")) {
+					String aux = cod.substring(cod.indexOf("C")+1, cod.indexOf("C")+3);
+					int cuadro = Integer.parseInt(aux);
+					if (cuadros.containsKey(cuadro)) {
+						List<Integer> codes = cuadros.get(cuadro);
+						codes.add(numRows);
+					} else {
+						List<Integer> codes = new ArrayList<Integer>();
+						codes.add(numRows);
+						cuadros.put(cuadro, codes);
+					}
+				}
+
 				Object[] row = new Object[4];
 				row[0] = new Boolean(true);
 				// 0: Codigo
@@ -328,6 +352,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				row[3] = tableContent[i][3];
 				model.addRow(row);
 				numRows++;
+
 			}
 			if (numRows==0) {
 				String[] row = new String[3];
@@ -344,7 +369,14 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 
 		validationTB.getModel().addTableModelListener(this);
+
+		for (int code : cuadros.keySet()) {
+			cuadroCB.addItem(code);
+		}
+		cuadroCB.addActionListener(this);
+
 		refreshSelectCount();
+
 	}
 
 	private void refreshSelectCount(){
@@ -373,6 +405,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	public void initWidgets() {
 		councilCB = ((JComboBox)formBody.getComponentByName( ID_COUNCILCB));
+		cuadroCB = ((JComboBox) formBody.getComponentByName(ID_CUADROCB));
 		//councilCB.setEditable(true);
 		//councilCB.removeAllItems();
 		selectLA = ((JLabel) formBody.getComponentByName(ID_SELECTLA));
@@ -469,6 +502,17 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			executeValidations();
 			return;
 
+		}
+
+		if (e.getSource() == cuadroCB) {
+			String aux = cuadroCB.getSelectedItem().toString();
+			int cuadro = Integer.parseInt(aux);
+			List<Integer> indexes = cuadros.get(cuadro);
+			TableModel model = validationTB.getModel();
+			for (int i=0; i<model.getRowCount(); i++) {
+				boolean selected = indexes.contains(i);
+				model.setValueAt(selected, i, 0);
+			}
 		}
 
 		//		if (e.getSource() == exportB){
