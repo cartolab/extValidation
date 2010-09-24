@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2010. Cartolab (Universidade da Coruña)
+ * 
+ * This file is part of EIEL Validation
+ * 
+ * EIEL Validation is free software: you can redistribute it and/or modify it under the terms 
+ * of the GNU General Public License as published by the Free Software Foundation, either 
+ * version 3 of the License, or any later version.
+ * 
+ * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with EIEL Validation
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package es.udc.cartolab.gvsig.eielvalidation.gui;
 
 import java.awt.BorderLayout;
@@ -101,7 +118,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				DBSession dbs = DBSession.getCurrentSession();
 				String council = (String)councilCB.getSelectedItem();
 
-				//TODO
 				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
 
 				setProgress(0);
@@ -110,7 +126,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				int total=0;
 				for (int i = 0; i < model.getRowCount(); i++){
 					Object isChecked = model.getValueAt(i, 0);
-					if ((isChecked instanceof Boolean) && (Boolean)isChecked){
+					if (isChecked instanceof Boolean && (Boolean)isChecked){
 						total++;
 					}
 				}
@@ -119,7 +135,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				int count=0;
 				for (int i = 0; i < model.getRowCount(); i++){
 					Object isChecked = model.getValueAt(i, 0);
-					if ((isChecked instanceof Boolean) && (Boolean)isChecked){
+					if (isChecked instanceof Boolean && (Boolean)isChecked){
 						// Get CODE of the validation
 						String code = (String) model.getValueAt(i, 1);
 						String description = (String) model.getValueAt(i,3);
@@ -201,7 +217,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 					}
 				}
 			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
 				sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
 				e1.printStackTrace();
 			}
@@ -220,7 +235,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				sf.append("<hr>");
 			}
 
-			//			resultTA.setText(sf.toString());
 			return sf.toString();
 		}
 
@@ -385,7 +399,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
 		for (int i = 0; i < model.getRowCount(); i++){
 			Object value = model.getValueAt(i, 0);
-			if ((value instanceof Boolean) && (Boolean)value){
+			if (value instanceof Boolean && (Boolean)value){
 				count++;
 			}
 		}
@@ -404,12 +418,12 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	}
 
 	public void initWidgets() {
-		councilCB = ((JComboBox)formBody.getComponentByName( ID_COUNCILCB));
-		cuadroCB = ((JComboBox) formBody.getComponentByName(ID_CUADROCB));
+		councilCB = (JComboBox)formBody.getComponentByName( ID_COUNCILCB);
+		cuadroCB = (JComboBox) formBody.getComponentByName(ID_CUADROCB);
 		//councilCB.setEditable(true);
 		//councilCB.removeAllItems();
-		selectLA = ((JLabel) formBody.getComponentByName(ID_SELECTLA));
-		validationTB = ((JTable)formBody.getComponentByName( ID_VALIDATIONTB));
+		selectLA = (JLabel) formBody.getComponentByName(ID_SELECTLA);
+		validationTB = (JTable)formBody.getComponentByName( ID_VALIDATIONTB);
 		validationTB.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(MouseEvent e){
@@ -428,28 +442,24 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//		resultTA = ((JEditorPane)formBody.getComponentByName( ID_RESULTTA));
 		//		resultTA.setEditable(false);
 		//		resultTA.setContentType("text/html");
-		selectAllB = ((JButton)formBody.getComponentByName( ID_SELECTALLB));
+		selectAllB = (JButton)formBody.getComponentByName( ID_SELECTALLB);
 		selectAllB.addActionListener(this);
-		selectCleanB = ((JButton)formBody.getComponentByName( ID_SELECTCLEANB));
+		selectCleanB = (JButton)formBody.getComponentByName( ID_SELECTCLEANB);
 		selectCleanB.addActionListener(this);
-		selectLoadB = ((JButton)formBody.getComponentByName( ID_SELECTLOADB));
+		selectLoadB = (JButton)formBody.getComponentByName( ID_SELECTLOADB);
 		selectLoadB.setVisible(false);
 		selectLoadB.addActionListener(this);
-		selectSaveB = ((JButton)formBody.getComponentByName( ID_SELECTSAVEB));
+		selectSaveB = (JButton)formBody.getComponentByName( ID_SELECTSAVEB);
 		selectSaveB.setVisible(false);
 		selectSaveB.addActionListener(this);
 		//		exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
 		//		exportB.setVisible(true);
 		//		exportB.addActionListener(this);
-		validateB = ((JButton)formBody.getComponentByName( ID_VALIDATEB));
+		validateB = (JButton)formBody.getComponentByName( ID_VALIDATEB);
 		validateB.addActionListener(this);
 	}
 
 	public void tableChanged(TableModelEvent e) {
-		//		int row = e.getFirstRow();
-		//		int column = e.getColumn();
-		//		DefaultTableModel model = (DefaultTableModel)e.getSource();
-		//		System.out.println(model.getValueAt(row, column));
 		refreshSelectCount();
 	}
 
@@ -516,7 +526,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 
 		//		if (e.getSource() == exportB){
-		//			//TODO
 		//			JFileChooser fc = new JFileChooser();
 		//			fc.showSaveDialog(fc);
 		//			File fFile=fc.getSelectedFile();
@@ -538,7 +547,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		// TODO Auto-generated method stub
 		Object obj = evt.getNewValue();
 		if (obj instanceof Integer) {
 			int progress = (Integer) evt.getNewValue();

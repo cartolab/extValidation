@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2010. Cartolab (Universidade da Coruña)
+ * 
+ * This file is part of EIEL Validation
+ * 
+ * EIEL Validation is free software: you can redistribute it and/or modify it under the terms 
+ * of the GNU General Public License as published by the Free Software Foundation, either 
+ * version 3 of the License, or any later version.
+ * 
+ * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with EIEL Validation
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package es.udc.cartolab.gvsig.eielvalidation.gui;
 
 import java.awt.BorderLayout;
@@ -53,15 +70,15 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 	}
 
 	public void initWidgets() {
-		descriptionTA = ((JEditorPane)formBody.getComponentByName( ID_DESCRIPTIONTA));
+		descriptionTA = (JEditorPane)formBody.getComponentByName( ID_DESCRIPTIONTA);
 		descriptionTA.setEditable(false);
 		//resultTA.setContentType("text/html");
 
-		sqlTA = ((JEditorPane)formBody.getComponentByName( ID_SQLTA));
+		sqlTA = (JEditorPane)formBody.getComponentByName( ID_SQLTA);
 		sqlTA.setEditable(false);
 		//resultTA.setContentType("text/html");
 
-		okB = ((JButton)formBody.getComponentByName( ID_OKB));
+		okB = (JButton)formBody.getComponentByName( ID_OKB);
 		okB.addActionListener(this);
 
 	}
@@ -100,7 +117,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 			while (rs.next()) {
 				for (int j=0; j<fieldNames.size(); j++) {
 					String val = rs.getString(fieldNames.get(j));
-					if ((val == null) || (val.compareTo("")==0)) {
+					if (val == null || val.compareTo("")==0) {
 						val = " ";
 					}
 					text = text + val + "|";
@@ -115,7 +132,6 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 			sf.append("<p style=\"color: red\">" + text + "</p>");
 
 		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
 			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
 			e1.printStackTrace();
 		}

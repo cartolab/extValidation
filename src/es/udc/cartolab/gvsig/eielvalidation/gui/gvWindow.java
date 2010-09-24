@@ -1,6 +1,21 @@
-package es.udc.cartolab.gvsig.eielvalidation.gui;
+/*
+ * Copyright (c) 2010. Cartolab (Universidade da Coruña)
+ * 
+ * This file is part of EIEL Validation
+ * 
+ * EIEL Validation is free software: you can redistribute it and/or modify it under the terms 
+ * of the GNU General Public License as published by the Free Software Foundation, either 
+ * version 3 of the License, or any later version.
+ * 
+ * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with EIEL Validation
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
-import java.awt.Component;
+package es.udc.cartolab.gvsig.eielvalidation.gui;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -22,7 +37,7 @@ public class gvWindow extends JPanel implements IWindow {
 	public gvWindow(int width, int height){
 		this(width, height, true);
 	}
-	
+
 	public gvWindow(int width, int height, boolean resizable){
 		INITIAL_SIZE = true;
 		if (resizable) {
@@ -63,7 +78,6 @@ public class gvWindow extends JPanel implements IWindow {
 
 	@Override
 	public Object getWindowProfile() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }
