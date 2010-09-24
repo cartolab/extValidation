@@ -9,7 +9,7 @@
 		<extension class-name="es.udc.cartolab.gvsig.eielvalidation.EIELValidationExtension" description="Validar" active="true">
 			<menu text="EIEL/Validar"
 				action-command="Validar"
-				icon="" position="1601"/> 
+				position="1601"/> 
 		</extension>
 	</extensions>
 </plugin-config>
