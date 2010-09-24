@@ -23,6 +23,7 @@
   </target>
 
   <target name="generate-without-source"
+  		depends="copy-data-files"
   		description="generate the distribution without the source file">
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
@@ -35,20 +36,7 @@
 
   	<jar jarfile="${dist}/lib/${plugin}.jar" basedir="${build}" includes="es/udc/cartolab/**"
     />
-  	<copy todir="${dist}/images">
-  	    	<fileset dir="images" includes="*"/>
-  	</copy>
 
-  	<copy file="config/config.xml" todir="${dist}"/>
-    <copy todir="${dist}">
-    	<fileset dir="config" includes="text*.properties"/>
-    </copy>
-	
-  	<mkdir dir="${dist}/forms"/>
-    <copy todir="${dist}/forms">
-    	<fileset dir="forms"/> 
-    </copy>
-  	
     <move todir="${extensionsDir}/${plugin}/">
     	<fileset dir="${dist}" includes="**/**"/>
     </move>
@@ -66,15 +54,22 @@
 			classpath="${compile-classpath}"/>
 	</target>
 
+
 	<target name="copy-data-files">
+
+		<copy todir="${dist}/images">
+	  	    	<fileset dir="images" includes="*"/>
+	  	</copy>
+
 	    <copy file="config/config.xml" todir="${dist}"/>
+		<copy file="config/about.html" todir="${dist}"/>
 		<copy todir="${dist}">
 			<fileset dir="config" includes="text*.properties"/>
 		</copy>
-		
+
 	  	<mkdir dir="${dist}/forms"/>
 	  	<copy todir="${dist}/forms">
-	      	<fileset dir="forms"/> 
+	      	<fileset dir="forms"/>
 	    </copy>
 	</target>
 
