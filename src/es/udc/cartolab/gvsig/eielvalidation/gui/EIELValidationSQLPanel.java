@@ -86,7 +86,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 	private void getValidations() {
 		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
-		String NEW_SCHEMA = "eiel_map_municipal";
+		String NEW_SCHEMA = DBSession.getCurrentSession().getSchema();
 
 		StringBuffer sf = new StringBuffer();
 		try {

@@ -107,7 +107,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 			String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
-			String NEW_SCHEMA = "eiel_map_municipal";
+			String NEW_SCHEMA = DBSession.getCurrentSession().getSchema();
 
 			int validationsFail = 0;
 			int errorsFound = 0;
