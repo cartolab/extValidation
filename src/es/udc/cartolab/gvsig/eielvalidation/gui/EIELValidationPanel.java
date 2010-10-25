@@ -3,12 +3,12 @@
  * 
  * This file is part of EIEL Validation
  * 
- * EIEL Validation is free software: you can redistribute it and/or modify it under the terms 
- * of the GNU General Public License as published by the Free Software Foundation, either 
+ * EIEL Validation is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or any later version.
  * 
- * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with EIEL Validation
@@ -25,7 +25,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -48,6 +47,8 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
+
+import org.apache.log4j.Logger;
 
 import com.iver.andami.PluginServices;
 import com.jeta.forms.components.panel.FormPanel;
@@ -100,126 +101,38 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	private gvWindow progressBarDialog;
 	private TreeMap<Integer, List<Integer>> cuadros;
 
+	private static final Logger logger = Logger.getLogger(EIELValidationPanel.class);
+
+	private int errorsFound = 0;
+	private int validationsFail = 0;
+
+
 	private class ValidateTask extends SwingWorker<String, Void> {
 
-		@Override
-		protected String doInBackground() throws Exception {
+		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
+		String NEW_SCHEMA = DBSession.getCurrentSession().getSchema();
 
-			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-			String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
-			String NEW_SCHEMA = DBSession.getCurrentSession().getSchema();
-
-			int validationsFail = 0;
-			int errorsFound = 0;
-
+		public String showResultsAsHTML(ArrayList<ResultTableModel> resultMap) {
 			StringBuffer sf = new StringBuffer();
 
-			try {
-				DBSession dbs = DBSession.getCurrentSession();
-				String council = (String)councilCB.getSelectedItem();
+			for (ResultTableModel result: resultMap) {
+				sf.append("<h4 style=\"color: blue\">" + result.getCode() + "  -  " + result.getDescription() + "</h4>");
 
-				DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-
-				setProgress(0);
-
-				//get number of validations
-				int total=0;
-				for (int i = 0; i < model.getRowCount(); i++){
-					Object isChecked = model.getValueAt(i, 0);
-					if (isChecked instanceof Boolean && (Boolean)isChecked){
-						total++;
+				if (result.getError()) {
+					sf.append("<h2 style=\"color: red\">" + result.getErrorMessage() + "</h2>");
+				} else {
+					if (result.getValidationFailure()) {
+						sf.append("<p style=\"color: red\">" +
+								PluginServices.getText(this, "validationFail") + " " + result.getTableNameFailure() +
+						"</p>");
+						sf.append(result.getHTML());
+					} else {
+						sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
 					}
 				}
-
-				//check validations
-				int count=0;
-				for (int i = 0; i < model.getRowCount(); i++){
-					Object isChecked = model.getValueAt(i, 0);
-					if (isChecked instanceof Boolean && (Boolean)isChecked){
-						// Get CODE of the validation
-						String code = (String) model.getValueAt(i, 1);
-						String description = (String) model.getValueAt(i,3);
-						sf.append("<h4 style=\"color: blue\">" + code + "  -  " + description + "</h4>");
-
-						String[][] tableContent = dbs.getTable("validacion_consultas",
-								"eiel_aplicaciones",
-								"codigo = '"+ code + "'");
-						String query = tableContent[0][1];
-						String whereC = tableContent[0][8];
-						String codigoConsulta =  tableContent[0][0];
-						// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-						query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
-
-						Connection con = dbs.getJavaConnection();
-						Statement stat = con.createStatement();
-
-						if (!council.equals(ALL_COUNCILS)){
-							//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
-							whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]", council.toUpperCase());
-							//						whereC = "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='" + council +"' limit 1)";
-							query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
-						} else {
-							query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
-						}
-						System.out.println(codigoConsulta + ": " + query);
-
-						ResultSet rs = stat.executeQuery(query);
-						//rs.next();
-						int row = 0;
-
-						//COPY FROM DBSession.getTable()
-						String text = "<table border=\"1\"><tr>";
-						DatabaseMetaData metadataDB = con.getMetaData();
-						ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
-						ArrayList<String> fieldNames = new ArrayList<String>();
-
-						ResultSetMetaData metaData = rs.getMetaData();
-						int numColumns = metaData.getColumnCount();
-						String tableName = metaData.getTableName(1);
-
-						/*while (columns.next()) {
-								fieldNames.add(columns.getString("Column_Name"));
-							}*/
-
-						//Getting the field names of the table
-						for (int k=0; k<numColumns; k++)
-						{
-							text = text + "<td>" + metaData.getColumnLabel(k+1) + "</td>";
-						}
-						text = text + "</tr>";
-
-						//Getting values of the rows that have failed
-						int oldErrors = errorsFound;
-						while (rs.next()) {
-							row = rs.getRow();
-							errorsFound++;
-							text = text + "<tr>";
-							for (int j=1; j<=numColumns; j++) {
-								String val = rs.getString(j);
-								text = text + "<td>" + val + "</td>";
-							}
-							text = text + "</tr>";
-						}
-						text = text + "</table>";
-						rs.close();
-						if (errorsFound > oldErrors) {
-							validationsFail++;
-						}
-
-						if (row == 0) {
-							sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
-						}else {
-							sf.append("<p style=\"color: red\">" + PluginServices.getText(this, "validationFail") + " " + tableName + "</p>");
-							sf.append(text);
-						}
-						count++;
-						setProgress(count*100/total);
-					}
-				}
-			} catch (SQLException e1) {
-				sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
-				e1.printStackTrace();
 			}
+
 			if (validationsFail > 0) {
 				sf.append("<h2 style=\"color: red\">");
 				if (errorsFound > 1) {
@@ -236,6 +149,201 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			}
 
 			return sf.toString();
+		}
+
+
+		/**
+		 * Close a ResultSet
+		 * @param rs, the resultset to be closed
+		 * @return true if the resulset was correctly closed. false in any other case
+		 */
+		public boolean closeResultSet(ResultSet rs) {
+			boolean error = false;
+
+			if (rs != null) {
+				try {
+					rs.close();
+					error = true;
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+
+			return error;
+		}
+
+		/**
+		 * Close a Statement
+		 * @param st, the statement to be closed
+		 * @return true if the  statement was correctly closed, false in any other case
+		 */
+		public boolean closeStatement(Statement st) {
+			boolean error = false;
+
+			if (st != null) {
+				try {
+					st.close();
+					error = true;
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+
+			return error;
+		}
+
+		/**
+		 * Close a Connection
+		 * @param conn, the  connection to be closed
+		 * @return true if the connection was correctly closed, false in any other case
+		 */
+		public boolean closeConnection(Connection con) {
+			boolean error = false;
+
+			if (con != null) {
+				try {
+					con.close();
+					error = true;
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+
+			return error;
+		}
+		/**
+		 * Executes the wished query
+		 */
+		private ResultTableModel doQuery (String queryCode, String queryDescription, String council) {
+
+			DBSession dbs = DBSession.getCurrentSession();
+			Connection con = null;
+			Statement st = null;
+			ResultSet rs = null;
+			ResultTableModel result = new ResultTableModel(queryCode, queryDescription);
+
+			try {
+
+				String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones",
+						"codigo = '"+ queryCode + "'");
+				String query = tableContent[0][1];
+				String whereC = tableContent[0][8];
+
+				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+				query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
+
+				if (!council.equals(ALL_COUNCILS)){
+					//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
+					whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]", council.toUpperCase());
+					//						whereC = "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='" + council +"' limit 1)";
+					query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
+				} else {
+					query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
+				}
+
+
+				con = dbs.getJavaConnection();
+				st = con.createStatement();
+				logger.info(result.getCode() + ": " + query);
+				rs = st.executeQuery(query);
+				resultSetToTable(result, rs);
+			} catch (SQLException e) {
+				result.setError(true);
+				result.setErroMessage(e.getMessage());
+				logger.error(e.getMessage(), e);
+			} finally {
+				closeResultSet(rs);
+				closeStatement(st);
+				closeConnection(con);
+			}
+			return result;
+
+		}
+
+		private void resultSetToTable(ResultTableModel result, ResultSet rs) throws SQLException{
+			//TODO: don't create empty ResultTableModel
+			ResultSetMetaData metaData = rs.getMetaData();
+			int numColumns = metaData.getColumnCount();
+
+			//Getting the field names of the table
+			String header[] = new String[numColumns];
+			for (int i=0; i<numColumns; i++) {
+				result.addColumn(metaData.getColumnLabel(i+1));
+			}
+
+
+			//Getting values of the rows that have failed
+			int oldErrors = errorsFound;
+
+			while (rs.next()) {
+				errorsFound++;
+				String rowData[] = new String[numColumns];
+				for (int i=0; i<numColumns; i++) {
+					rowData[i] = rs.getString(i+1);
+				}
+				result.addRow(rowData);
+			}
+
+			if (errorsFound > oldErrors) {
+				validationsFail++;
+				result.setValidationFailure(true);
+				result.setTableNameFailure(metaData.getTableName(1));
+			} else {
+				result.setValidationFailure(false);
+			}
+
+		}
+
+		@Override
+		protected String doInBackground() throws Exception {
+
+			validationsFail = 0;
+			errorsFound = 0;
+
+			DBSession dbs = DBSession.getCurrentSession();
+			String council = (String)councilCB.getSelectedItem();
+
+			DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+
+			setProgress(0);
+
+			ArrayList<ResultTableModel> resultsMap = new ArrayList<ResultTableModel>();
+			//check validations
+			int count=0;
+			for (int i = 0; i < model.getRowCount(); i++){
+				Object isChecked = model.getValueAt(i, 0);
+				if (isChecked instanceof Boolean && (Boolean)isChecked){
+
+					// Get CODE of the validation
+					String queryCode = (String) model.getValueAt(i, 1);
+					String queryDescription = (String) model.getValueAt(i,3);
+
+					ResultTableModel result = doQuery (queryCode, queryDescription, council);
+					resultsMap.add(result);
+
+					count++;
+					setProgress(count*100/ getCheckedValidationsCount(model));
+				}
+			}
+			String html = showResultsAsHTML(resultsMap);
+			return html;
+
+		}
+
+		/**
+		 * @param model that contains the identifier of the validation and if it must be tested
+		 * @return The number of validations that must be tested
+		 */
+		private int getCheckedValidationsCount(DefaultTableModel model) {
+			//get number of validations
+			int total=0;
+			for (int i = 0; i < model.getRowCount(); i++){
+				Object isChecked = model.getValueAt(i, 0);
+				if (isChecked instanceof Boolean && (Boolean)isChecked){
+					total++;
+				}
+			}
+			return total;
 		}
 
 		@Override
@@ -332,7 +440,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//Table content
 
 		try {
-			//String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "1 = 1 AND codigo ORDER BY codigo");
 			//[NachoV] Now only retrieves MAP validations
 			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "codigo SIMILAR TO '"+
 					TYPE_OF_VALIDATION +"%'ORDER BY codigo");
@@ -378,8 +485,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			model.fireTableRowsInserted(0, model.getRowCount()-1);
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 		validationTB.getModel().addTableModelListener(this);
