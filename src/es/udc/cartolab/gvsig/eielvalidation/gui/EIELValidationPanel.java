@@ -651,7 +651,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//		}
 	}
 
-	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		Object obj = evt.getNewValue();
 		if (obj instanceof Integer) {

@@ -3,12 +3,12 @@
  * 
  * This file is part of EIEL Validation
  * 
- * EIEL Validation is free software: you can redistribute it and/or modify it under the terms 
- * of the GNU General Public License as published by the Free Software Foundation, either 
+ * EIEL Validation is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or any later version.
  * 
- * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with EIEL Validation
@@ -20,19 +20,16 @@ package es.udc.cartolab.gvsig.eielvalidation.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import net.miginfocom.swing.MigLayout;
 
-import com.iver.andami.PluginServices;
+import com.iver.andami.messages.NotificationManager;
+
 
 public class EIELValidationResultPanel extends gvWindow implements ActionListener {
 
@@ -77,28 +74,15 @@ public class EIELValidationResultPanel extends gvWindow implements ActionListene
 	}
 
 
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == exportB){
-			JFileChooser fc = new JFileChooser();
-			int answer = fc.showSaveDialog(fc);
-			if (answer == JFileChooser.APPROVE_OPTION) {
-				File fFile=fc.getSelectedFile();
-				String filePath = fFile.getPath();
-				FileOutputStream fo;
-				try {
-					fo = new FileOutputStream(filePath);
-					PrintStream ps=new PrintStream(fo);
-					ps.println(resultTA.getText());
-					ps.close();
-					fo.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+			SaveFileDialog sfd = new SaveFileDialog("HTML files", "html", "htm");
+			File f = sfd.showDialog();
+			if (f!=null) {
+				if (sfd.writeFileToDisk(resultTA.getText(), f)) {
+					NotificationManager.showMessageError("error_saving_file", null);
 				}
-				PluginServices.getMDIManager().closeWindow(this);
 			}
-			return;
 		}
 	}
 
