@@ -88,7 +88,7 @@ public class SaveFileDialog extends JFileChooser {
 		}
 
 		do {
-			int returnVal = showOpenDialog(null);
+			int returnVal = showSaveDialog(null);
 			if (returnVal == JFileChooser.CANCEL_OPTION) {
 				break;
 			}
