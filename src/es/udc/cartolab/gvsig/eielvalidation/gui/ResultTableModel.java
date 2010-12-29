@@ -97,7 +97,6 @@ public class ResultTableModel extends DefaultTableModel {
 	}
 
 
-	@Override
 	public Class<?> getColumnClass(int c) {
 		return getValueAt(0, c).getClass();
 	}
@@ -118,7 +117,6 @@ public class ResultTableModel extends DefaultTableModel {
 
 
 	// Methods overided of the AbstractTableModel
-	@Override
 	public boolean isCellEditable (int row, int col) {
 		boolean editable = false;
 

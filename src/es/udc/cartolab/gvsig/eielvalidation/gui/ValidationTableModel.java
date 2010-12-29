@@ -21,7 +21,6 @@ import javax.swing.table.DefaultTableModel;
 
 public class ValidationTableModel extends DefaultTableModel{
 
-	@Override
 	public Class getColumnClass(int index){
 		if(index == 0){
 			return Boolean.class;
@@ -30,7 +29,6 @@ public class ValidationTableModel extends DefaultTableModel{
 		}
 	}
 
-	@Override
 	public boolean isCellEditable(int row, int col){
 		if (col == 0) {
 			return true;

@@ -294,7 +294,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		}
 
-		@Override
 		protected String doInBackground() throws Exception {
 
 			validationsFail = 0;
@@ -346,7 +345,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			return total;
 		}
 
-		@Override
 		public void done() {
 			try {
 				String str = get();
@@ -531,7 +529,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		selectLA = (JLabel) formBody.getComponentByName(ID_SELECTLA);
 		validationTB = (JTable)formBody.getComponentByName( ID_VALIDATIONTB);
 		validationTB.addMouseListener(new MouseAdapter(){
-			@Override
 			public void mouseClicked(MouseEvent e){
 				if (e.getClickCount() == 2){
 					JTable target = (JTable)e.getSource();
