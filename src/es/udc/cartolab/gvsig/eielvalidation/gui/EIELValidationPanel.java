@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2010. Cartolab (Universidade da Coruña)
- * 
+ *
  * This file is part of EIEL Validation
- * 
+ *
  * EIEL Validation is free software: you can redistribute it and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or any later version.
- * 
+ *
  * EIEL Validation is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with EIEL Validation
  * If not, see <http://www.gnu.org/licenses/>.
  */
@@ -80,6 +80,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	public final String ID_SELECTALLB = "selectAllB";
 	private JButton selectAllB;
+
+	public final String ID_SELECTMANB = "selectManB";
+	private JButton selectManB;
 
 	public final String ID_SELECTCLEANB = "selectCleanB";
 	private JButton selectCleanB;
@@ -402,7 +405,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		// VALIDATIONS TABLE
 		DefaultTableModel model = new ValidationTableModel();
 		validationTB.setModel(model);
-		String[] columnNames = {"NUM", "COD", "GR", "Descripcion"};
+		String[] columnNames = {"NUM", "COD", "GR", "Descripcion", "Obl"};
 
 		model.setRowCount(0);
 		validationTB.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -423,6 +426,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		TableColumn column03 = new TableColumn();
 		((DefaultTableModel)validationTB.getModel()).addColumn(column03);
 
+		TableColumn column04 = new TableColumn();
+		((DefaultTableModel)validationTB.getModel()).addColumn(column04);
+
 		validationTB.getColumnModel().getColumn(0).setHeaderValue(columnNames[0]);
 		validationTB.getColumnModel().getColumn(0).setMaxWidth(35);
 		validationTB.getColumnModel().getColumn(1).setHeaderValue(columnNames[1]);
@@ -432,6 +438,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
 		validationTB.getColumnModel().getColumn(3).setHeaderValue(columnNames[3]);
 		validationTB.getColumnModel().getColumn(3).setCellRenderer(new ValidationTableCellRenderer());
+		validationTB.getColumnModel().getColumn(4).setHeaderValue(columnNames[4]);
+		validationTB.getColumnModel().getColumn(4).setMaxWidth(35);
 
 		validationTB.repaint();
 
@@ -460,7 +468,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 					}
 				}
 
-				Object[] row = new Object[4];
+				Object[] row = new Object[5];
 				row[0] = new Boolean(true);
 				// 0: Codigo
 				row[1] = tableContent[i][0];
@@ -469,6 +477,12 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				row[2] = tableContent[i][2];
 				// 3: nombre validacion
 				row[3] = tableContent[i][3];
+				// 9: obligatorio para la EIEL
+				if (tableContent[i][9].equals("t")) {
+					row[4] = "SI";
+				} else {
+					row[4] = "NO";
+				}
 				model.addRow(row);
 				numRows++;
 
@@ -521,6 +535,18 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 	}
 
+	private void setMandatoryValidations() {
+		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+		for (int i = 0; i< model.getRowCount(); i++) {
+			String mandatory = model.getValueAt(i, 4).toString();
+			if (mandatory.equals("SI")) {
+				model.setValueAt(true, i, 0);
+			} else {
+				model.setValueAt(false, i, 0);
+			}
+		}
+	}
+
 	public void initWidgets() {
 		councilCB = (JComboBox)formBody.getComponentByName( ID_COUNCILCB);
 		cuadroCB = (JComboBox) formBody.getComponentByName(ID_CUADROCB);
@@ -547,6 +573,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//		resultTA.setContentType("text/html");
 		selectAllB = (JButton)formBody.getComponentByName( ID_SELECTALLB);
 		selectAllB.addActionListener(this);
+		selectManB = (JButton)formBody.getComponentByName(ID_SELECTMANB);
+		selectManB.addActionListener(this);
 		selectCleanB = (JButton)formBody.getComponentByName( ID_SELECTCLEANB);
 		selectCleanB.addActionListener(this);
 		selectLoadB = (JButton)formBody.getComponentByName( ID_SELECTLOADB);
@@ -593,6 +621,10 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		if (e.getSource() == selectAllB){
 			changeValidationSets(true);
 			return;
+		}
+
+		if (e.getSource() == selectManB) {
+			setMandatoryValidations();
 		}
 
 		if (e.getSource() == selectCleanB){
