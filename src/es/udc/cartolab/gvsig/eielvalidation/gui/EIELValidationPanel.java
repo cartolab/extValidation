@@ -389,11 +389,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		initValues();
 	}
 
-	public void initValues() {
+	private void fillCouncilsCB() {
 
 		DBSession dbs = DBSession.getCurrentSession();
-
-		// COUNCILS CB
 		String[] councils = null;
 		try {
 			councils = dbs.getDistinctValues("municipio", "denominaci");
@@ -401,60 +399,22 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		//TODO Add "Todos" to text.properties file
 		councilCB.addItem(ALL_COUNCILS);
 		for (int i = 0; i < councils.length; i++){
 			councilCB.addItem(councils[i]);
 		}
+	}
 
-		// VALIDATIONS TABLE
-		DefaultTableModel model = new ValidationTableModel();
-		validationTB.setModel(model);
-		String[] columnNames = {"NUM", "COD", "GR", "Descripcion", "Obl"};
-
+	private void fillValidationsTable(String modelSchm) {
+		DBSession dbs = DBSession.getCurrentSession();
+		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
 		model.setRowCount(0);
-		validationTB.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		validationTB.setRowSelectionAllowed(true);
-		validationTB.setColumnSelectionAllowed(false);
-
-		//TODO Add CHECKBOX, GROUP and SQL? column!!!
-
-		TableColumn column00 = new TableColumn();
-		((DefaultTableModel)validationTB.getModel()).addColumn(column00);
-
-		TableColumn column01 = new TableColumn();
-		((DefaultTableModel)validationTB.getModel()).addColumn(column01);
-
-		TableColumn column02 = new TableColumn();
-		((DefaultTableModel)validationTB.getModel()).addColumn(column02);
-
-		TableColumn column03 = new TableColumn();
-		((DefaultTableModel)validationTB.getModel()).addColumn(column03);
-
-		TableColumn column04 = new TableColumn();
-		((DefaultTableModel)validationTB.getModel()).addColumn(column04);
-
-		validationTB.getColumnModel().getColumn(0).setHeaderValue(columnNames[0]);
-		validationTB.getColumnModel().getColumn(0).setMaxWidth(35);
-		validationTB.getColumnModel().getColumn(1).setHeaderValue(columnNames[1]);
-		validationTB.getColumnModel().getColumn(1).setMinWidth(100);
-		validationTB.getColumnModel().getColumn(1).setMaxWidth(110);
-		validationTB.getColumnModel().getColumn(2).setHeaderValue(columnNames[2]);
-		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
-		validationTB.getColumnModel().getColumn(3).setHeaderValue(columnNames[3]);
-		validationTB.getColumnModel().getColumn(3).setCellRenderer(new ValidationTableCellRenderer());
-		validationTB.getColumnModel().getColumn(4).setHeaderValue(columnNames[4]);
-		validationTB.getColumnModel().getColumn(4).setMaxWidth(35);
-
-		validationTB.repaint();
-
-		//Table content
 
 		try {
 			//[NachoV] Now only retrieves MAP validations
 			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "codigo SIMILAR TO '"+
-					TYPE_OF_VALIDATION +"%'ORDER BY codigo");
+					TYPE_OF_VALIDATION +"%' AND modelo = 'A' or modelo = '" + modelSchm + "' ORDER BY codigo");
 
 			int numRows = 0;
 			cuadros = new TreeMap<Integer, List<Integer>>();
@@ -507,11 +467,28 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 
 		validationTB.getModel().addTableModelListener(this);
+		validationTB.repaint();
 
+		//refill cuadro cb
+		fillCuadroCB();
+	}
+
+	private void fillCuadroCB() {
+		cuadroCB.removeActionListener(this);
 		for (int code : cuadros.keySet()) {
 			cuadroCB.addItem(code);
 		}
 		cuadroCB.addActionListener(this);
+	}
+
+
+	public void initValues() {
+
+		// COUNCILS CB
+		fillCouncilsCB();
+
+		//modelo CB (it implies validationTB and cuardoCB)
+		modeloCB.setSelectedIndex(1);
 
 		refreshSelectCount();
 
@@ -553,12 +530,26 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 	}
 
-	public void initWidgets() {
-		councilCB = (JComboBox)formBody.getComponentByName( ID_COUNCILCB);
+	private void initComboBoxes() {
+		modeloCB = (JComboBox) formBody.getComponentByName(ID_MODELOCB);
+		schemaCB = (JComboBox) formBody.getComponentByName(ID_SCHEMACB);
+		councilCB = (JComboBox)formBody.getComponentByName(ID_COUNCILCB);
 		cuadroCB = (JComboBox) formBody.getComponentByName(ID_CUADROCB);
-		//councilCB.setEditable(true);
-		//councilCB.removeAllItems();
-		selectLA = (JLabel) formBody.getComponentByName(ID_SELECTLA);
+		modeloCB.addActionListener(new ActionListener() {
+
+			String[] modelos = {"T", "M"};
+
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox) e.getSource();
+				String modelo = modelos[cb.getSelectedIndex()];
+				fillValidationsTable(modelo);
+			}
+
+		});
+	}
+
+	private void initValidationTable() {
+
 		validationTB = (JTable)formBody.getComponentByName( ID_VALIDATIONTB);
 		validationTB.addMouseListener(new MouseAdapter(){
 			public void mouseClicked(MouseEvent e){
@@ -572,11 +563,48 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				}
 			}
 		} );
-		//initJTable(validationTB, "NNNNNNNNNNNNN");
-		//validationTB.addMouseListener(this);
-		//		resultTA = ((JEditorPane)formBody.getComponentByName( ID_RESULTTA));
-		//		resultTA.setEditable(false);
-		//		resultTA.setContentType("text/html");
+
+		// VALIDATIONS TABLE
+		DefaultTableModel model = new ValidationTableModel();
+		validationTB.setModel(model);
+		String[] columnNames = {"NUM", "COD", "GR", "Descripcion", "Obl"};
+
+		model.setRowCount(0);
+		validationTB.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		validationTB.setRowSelectionAllowed(true);
+		validationTB.setColumnSelectionAllowed(false);
+
+		//TODO Add CHECKBOX, GROUP and SQL? column!!!
+
+		TableColumn column00 = new TableColumn();
+		model.addColumn(column00);
+
+		TableColumn column01 = new TableColumn();
+		model.addColumn(column01);
+
+		TableColumn column02 = new TableColumn();
+		model.addColumn(column02);
+
+		TableColumn column03 = new TableColumn();
+		model.addColumn(column03);
+
+		TableColumn column04 = new TableColumn();
+		model.addColumn(column04);
+
+		validationTB.getColumnModel().getColumn(0).setHeaderValue(columnNames[0]);
+		validationTB.getColumnModel().getColumn(0).setMaxWidth(35);
+		validationTB.getColumnModel().getColumn(1).setHeaderValue(columnNames[1]);
+		validationTB.getColumnModel().getColumn(1).setMinWidth(100);
+		validationTB.getColumnModel().getColumn(1).setMaxWidth(110);
+		validationTB.getColumnModel().getColumn(2).setHeaderValue(columnNames[2]);
+		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
+		validationTB.getColumnModel().getColumn(3).setHeaderValue(columnNames[3]);
+		validationTB.getColumnModel().getColumn(3).setCellRenderer(new ValidationTableCellRenderer());
+		validationTB.getColumnModel().getColumn(4).setHeaderValue(columnNames[4]);
+		validationTB.getColumnModel().getColumn(4).setMaxWidth(35);
+	}
+
+	private void initButtons() {
 		selectAllB = (JButton)formBody.getComponentByName( ID_SELECTALLB);
 		selectAllB.addActionListener(this);
 		selectManB = (JButton)formBody.getComponentByName(ID_SELECTMANB);
@@ -594,6 +622,17 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		//		exportB.addActionListener(this);
 		validateB = (JButton)formBody.getComponentByName( ID_VALIDATEB);
 		validateB.addActionListener(this);
+	}
+
+	public void initWidgets() {
+
+		initComboBoxes();
+
+		selectLA = (JLabel) formBody.getComponentByName(ID_SELECTLA);
+
+		initButtons();
+
+		initValidationTable();
 	}
 
 	public void tableChanged(TableModelEvent e) {
