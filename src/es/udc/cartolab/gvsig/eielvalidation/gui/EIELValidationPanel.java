@@ -25,11 +25,13 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +62,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	private final String ALL_COUNCILS = "** Todos **";
 
 	private String TYPE_OF_VALIDATION = "VOL";
+
+	private final String[] FORBIDDEN_SCHEMAS = {"eiel_aplicaciones", "eiel_dominios", "map_structure",
+			"pg_catalog", "information_schema", "public"};
 
 	private FormPanel formBody;
 
@@ -120,7 +125,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
 		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
-		String NEW_SCHEMA = DBSession.getCurrentSession().getSchema();
+		String NEW_SCHEMA = schemaCB.getSelectedItem().toString();
 
 		public String showResultsAsHTML(ArrayList<ResultTableModel> resultMap) {
 			StringBuffer sf = new StringBuffer();
@@ -239,7 +244,6 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				String whereC = tableContent[0][8];
 
 				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
-				query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
 				if (!council.equals(ALL_COUNCILS)){
 					//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
@@ -250,6 +254,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 					query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
 				}
 
+				query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
 				con = dbs.getJavaConnection();
 				st = con.createStatement();
@@ -406,6 +411,36 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 	}
 
+	private void fillSchemaCB() {
+
+		DBSession dbs = DBSession.getCurrentSession();
+
+		List<String> forbSchemas = Arrays.asList(FORBIDDEN_SCHEMAS);
+		int currentSch = -1, i=0;
+		try {
+			DatabaseMetaData meta = dbs.getJavaConnection().getMetaData();
+			ResultSet res = meta.getSchemas();
+			while (res.next()) {
+				String schema = res.getString("TABLE_SCHEM");
+				if (!forbSchemas.contains(schema)) {
+					schemaCB.addItem(schema);
+					if (schema.equals(dbs.getSchema())) {
+						currentSch = i;
+					}
+					i++;
+				}
+			}
+			res.close();
+			if (currentSch > -1) {
+				schemaCB.setSelectedIndex(currentSch);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
 	private void fillValidationsTable(String modelSchm) {
 		DBSession dbs = DBSession.getCurrentSession();
 		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
@@ -489,6 +524,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		//modelo CB (it implies validationTB and cuardoCB)
 		modeloCB.setSelectedIndex(1);
+
+		fillSchemaCB();
 
 		refreshSelectCount();
 
