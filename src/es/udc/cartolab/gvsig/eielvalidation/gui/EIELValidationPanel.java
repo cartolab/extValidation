@@ -63,6 +63,12 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	private FormPanel formBody;
 
+	public final String ID_SCHEMACB = "schemaCB";
+	private JComboBox schemaCB;
+
+	public final String ID_MODELOCB = "modeloCB";
+	private JComboBox modeloCB;
+
 	public final String ID_COUNCILCB = "councilCB";
 	private JComboBox councilCB;
 
