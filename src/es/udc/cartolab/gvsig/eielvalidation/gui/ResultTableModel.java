@@ -22,6 +22,7 @@ package es.udc.cartolab.gvsig.eielvalidation.gui;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
@@ -37,6 +38,7 @@ public class ResultTableModel extends DefaultTableModel {
 	private String tableNameFailure = "";
 	private String errorMessage = "";
 	private boolean error = false;
+	private List<String> tables;
 
 	public ResultTableModel(String code, String description) {
 		super();
@@ -127,6 +129,21 @@ public class ResultTableModel extends DefaultTableModel {
 		}
 
 		return editable;
+	}
+
+	public void setQueryTables(List<String> tables) {
+		this.tables = tables;
+	}
+
+	public String getQueryTables() {
+		String t = "";
+		if (tables != null && tables.size() > 0) {
+			for (String table : tables) {
+				t = t.concat(table).concat(", ");
+			}
+			t = t.substring(0, t.length() - 2).concat(".");
+		}
+		return t;
 	}
 
 	public String getHTML() {

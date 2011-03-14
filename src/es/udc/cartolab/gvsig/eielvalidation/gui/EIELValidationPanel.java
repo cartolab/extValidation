@@ -144,7 +144,7 @@ public class EIELValidationPanel extends gvWindow implements
 						sf.append("<p style=\"color: red\">"
 								+ PluginServices
 										.getText(this, "validationFail") + " "
-								+ result.getTableNameFailure() + "</p>");
+								+ result.getQueryTables() + "</p>");
 						sf.append(result.getHTML());
 					} else {
 						sf.append("<p style=\"color: green\">"
@@ -173,6 +173,28 @@ public class EIELValidationPanel extends gvWindow implements
 			}
 
 			return sf.toString();
+		}
+
+		private List<String> getValidationTables(String query) {
+			List<String> tables = new ArrayList<String>();
+
+			query = query.replaceAll("\"", "");
+			int next = query.indexOf(OLD_SCHEMA);
+			while (next >= 0) {
+				int toIndex = query.indexOf(' ', next);
+				String table = query.substring(next + OLD_SCHEMA.length() + 1,
+						toIndex);
+				if (!tables.contains(table)) {
+					tables.add(table);
+				}
+				next = query.indexOf(OLD_SCHEMA, toIndex);
+			}
+
+			for (String table : tables) {
+				System.out.println("Table: " + table);
+			}
+
+			return tables;
 		}
 
 		/**
@@ -264,8 +286,7 @@ public class EIELValidationPanel extends gvWindow implements
 				String query = tableContent[0][1];
 				String whereC = tableContent[0][8];
 
-				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This
-				// is to make a quick replace.
+				result.setQueryTables(getValidationTables(query));
 
 				if (!council.equals(ALL_COUNCILS)) {
 					// sustituir [[WHERE]] por el valor de la columna where y el
@@ -280,6 +301,8 @@ public class EIELValidationPanel extends gvWindow implements
 					query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
 				}
 
+				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This
+				// is to make a quick replace.
 				query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
 				con = dbs.getJavaConnection();
@@ -287,6 +310,7 @@ public class EIELValidationPanel extends gvWindow implements
 				logger.info(result.getCode() + ": " + query);
 				rs = st.executeQuery(query);
 				resultSetToTable(result, rs);
+
 			} catch (SQLException e) {
 				result.setError(true);
 				result.setErroMessage(e.getMessage());
