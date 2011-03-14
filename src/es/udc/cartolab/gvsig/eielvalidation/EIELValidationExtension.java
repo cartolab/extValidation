@@ -33,8 +33,8 @@ public class EIELValidationExtension extends Extension {
 	}
 
 	public void initialize() {
-		About about=(About)PluginServices.getExtension(About.class);
-		FPanelAbout panelAbout=about.getAboutPanel();
+		About about = (About) PluginServices.getExtension(About.class);
+		FPanelAbout panelAbout = about.getAboutPanel();
 		java.net.URL aboutURL = this.getClass().getResource("/about.html");
 		panelAbout.addAboutUrl("Validation", aboutURL);
 	}
@@ -42,7 +42,7 @@ public class EIELValidationExtension extends Extension {
 	public boolean isEnabled() {
 		if (DBSession.getCurrentSession() != null) {
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}

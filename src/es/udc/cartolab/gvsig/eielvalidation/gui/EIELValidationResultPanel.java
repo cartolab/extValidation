@@ -30,8 +30,8 @@ import net.miginfocom.swing.MigLayout;
 
 import com.iver.andami.messages.NotificationManager;
 
-
-public class EIELValidationResultPanel extends gvWindow implements ActionListener {
+public class EIELValidationResultPanel extends gvWindow implements
+		ActionListener {
 
 	private JEditorPane resultTA;
 	private JButton exportB;
@@ -49,9 +49,8 @@ public class EIELValidationResultPanel extends gvWindow implements ActionListene
 			setTitle("Resultado de la validación");
 		}
 
-		MigLayout layout = new MigLayout("inset 0, align center",
-				"[grow]",
-		"[grow][]");
+		MigLayout layout = new MigLayout("inset 0, align center", "[grow]",
+				"[grow][]");
 
 		setLayout(layout);
 
@@ -65,7 +64,7 @@ public class EIELValidationResultPanel extends gvWindow implements ActionListene
 		panel.add(exportB);
 
 		add(scrollPane, "growx, growy, wrap");
-		add(panel, "shrink, align right" );
+		add(panel, "shrink, align right");
 
 	}
 
@@ -73,14 +72,14 @@ public class EIELValidationResultPanel extends gvWindow implements ActionListene
 		resultTA.setText(result);
 	}
 
-
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == exportB){
+		if (e.getSource() == exportB) {
 			SaveFileDialog sfd = new SaveFileDialog("HTML files", "html", "htm");
 			File f = sfd.showDialog();
-			if (f!=null) {
+			if (f != null) {
 				if (sfd.writeFileToDisk(resultTA.getText(), f)) {
-					NotificationManager.showMessageError("error_saving_file", null);
+					NotificationManager.showMessageError("error_saving_file",
+							null);
 				}
 			}
 		}

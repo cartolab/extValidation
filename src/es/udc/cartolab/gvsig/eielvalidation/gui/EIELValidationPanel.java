@@ -57,14 +57,16 @@ import com.jeta.forms.components.panel.FormPanel;
 
 import es.udc.cartolab.gvsig.users.utils.DBSession;
 
-public class EIELValidationPanel extends gvWindow implements TableModelListener, ActionListener, PropertyChangeListener{
+public class EIELValidationPanel extends gvWindow implements
+		TableModelListener, ActionListener, PropertyChangeListener {
 
 	private final String ALL_COUNCILS = "** Todos **";
 
 	private String TYPE_OF_VALIDATION = "VOL";
 
-	private final String[] FORBIDDEN_SCHEMAS = {"eiel_aplicaciones", "eiel_dominios", "map_structure",
-			"pg_catalog", "information_schema", "public"};
+	private final String[] FORBIDDEN_SCHEMAS = { "eiel_aplicaciones",
+			"eiel_dominios", "map_structure", "pg_catalog",
+			"information_schema", "public" };
 
 	private FormPanel formBody;
 
@@ -86,8 +88,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	public final String ID_VALIDATIONTB = "validationTB";
 	private JTable validationTB;
 
-	//	public final String ID_RESULTTA = "resultTA";
-	//	private JEditorPane resultTA;
+	// public final String ID_RESULTTA = "resultTA";
+	// private JEditorPane resultTA;
 
 	public final String ID_SELECTALLB = "selectAllB";
 	private JButton selectAllB;
@@ -104,45 +106,50 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	public final String ID_SELECTSAVEB = "selectSaveB";
 	private JButton selectSaveB;
 
-	//	public final String ID_EXPORTB = "exportB";
-	//	private JButton exportB;
+	// public final String ID_EXPORTB = "exportB";
+	// private JButton exportB;
 
 	public final String ID_VALIDATEB = "validateB";
 	private JButton validateB;
-
 
 	private JProgressBar progressBar;
 	private gvWindow progressBarDialog;
 	private TreeMap<Integer, List<Integer>> cuadros;
 
-	private static final Logger logger = Logger.getLogger(EIELValidationPanel.class);
+	private static final Logger logger = Logger
+			.getLogger(EIELValidationPanel.class);
 
 	private int errorsFound = 0;
 	private int validationsFail = 0;
 
-
 	private class ValidateTask extends SwingWorker<String, Void> {
 
-		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to
+		// make a quick replace.
 		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = schemaCB.getSelectedItem().toString();
 
 		public String showResultsAsHTML(ArrayList<ResultTableModel> resultMap) {
 			StringBuffer sf = new StringBuffer();
 
-			for (ResultTableModel result: resultMap) {
-				sf.append("<h4 style=\"color: blue\">" + result.getCode() + "  -  " + result.getDescription() + "</h4>");
+			for (ResultTableModel result : resultMap) {
+				sf.append("<h4 style=\"color: blue\">" + result.getCode()
+						+ "  -  " + result.getDescription() + "</h4>");
 
 				if (result.getError()) {
-					sf.append("<h2 style=\"color: red\">" + result.getErrorMessage() + "</h2>");
+					sf.append("<h2 style=\"color: red\">"
+							+ result.getErrorMessage() + "</h2>");
 				} else {
 					if (result.getValidationFailure()) {
-						sf.append("<p style=\"color: red\">" +
-								PluginServices.getText(this, "validationFail") + " " + result.getTableNameFailure() +
-						"</p>");
+						sf.append("<p style=\"color: red\">"
+								+ PluginServices
+										.getText(this, "validationFail") + " "
+								+ result.getTableNameFailure() + "</p>");
 						sf.append(result.getHTML());
 					} else {
-						sf.append("<p style=\"color: green\">" + PluginServices.getText(this, "validationOK")  + "</p>");
+						sf.append("<p style=\"color: green\">"
+								+ PluginServices.getText(this, "validationOK")
+								+ "</p>");
 					}
 				}
 			}
@@ -151,9 +158,12 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				sf.append("<h2 style=\"color: red\">");
 				if (errorsFound > 1) {
 					if (validationsFail > 1) {
-						sf.append(String.format(PluginServices.getText(this, "validationFailNumber"), errorsFound, validationsFail));
+						sf.append(String.format(PluginServices.getText(this,
+								"validationFailNumber"), errorsFound,
+								validationsFail));
 					} else {
-						sf.append(String.format(PluginServices.getText(this, "errorFailValidationOne"), errorsFound));
+						sf.append(String.format(PluginServices.getText(this,
+								"errorFailValidationOne"), errorsFound));
 					}
 				} else {
 					sf.append(PluginServices.getText(this, "validationFailOne"));
@@ -165,11 +175,13 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			return sf.toString();
 		}
 
-
 		/**
 		 * Close a ResultSet
-		 * @param rs, the resultset to be closed
-		 * @return true if the resulset was correctly closed. false in any other case
+		 * 
+		 * @param rs
+		 *            , the resultset to be closed
+		 * @return true if the resulset was correctly closed. false in any other
+		 *         case
 		 */
 		public boolean closeResultSet(ResultSet rs) {
 			boolean error = false;
@@ -188,8 +200,11 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		/**
 		 * Close a Statement
-		 * @param st, the statement to be closed
-		 * @return true if the  statement was correctly closed, false in any other case
+		 * 
+		 * @param st
+		 *            , the statement to be closed
+		 * @return true if the statement was correctly closed, false in any
+		 *         other case
 		 */
 		public boolean closeStatement(Statement st) {
 			boolean error = false;
@@ -208,8 +223,11 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		/**
 		 * Close a Connection
-		 * @param conn, the  connection to be closed
-		 * @return true if the connection was correctly closed, false in any other case
+		 * 
+		 * @param conn
+		 *            , the connection to be closed
+		 * @return true if the connection was correctly closed, false in any
+		 *         other case
 		 */
 		public boolean closeConnection(Connection con) {
 			boolean error = false;
@@ -225,30 +243,38 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 			return error;
 		}
+
 		/**
 		 * Executes the wished query
 		 */
-		private ResultTableModel doQuery (String queryCode, String queryDescription, String council) {
+		private ResultTableModel doQuery(String queryCode,
+				String queryDescription, String council) {
 
 			DBSession dbs = DBSession.getCurrentSession();
 			Connection con = null;
 			Statement st = null;
 			ResultSet rs = null;
-			ResultTableModel result = new ResultTableModel(queryCode, queryDescription);
+			ResultTableModel result = new ResultTableModel(queryCode,
+					queryDescription);
 
 			try {
 
-				String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones",
-						"codigo = '"+ queryCode + "'");
+				String[][] tableContent = dbs.getTable("validacion_consultas",
+						"eiel_aplicaciones", "codigo = '" + queryCode + "'");
 				String query = tableContent[0][1];
 				String whereC = tableContent[0][8];
 
-				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This
+				// is to make a quick replace.
 
-				if (!council.equals(ALL_COUNCILS)){
-					//sustituir [[WHERE]] por el valor de la columna where y el codigo adecuado
-					whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]", council.toUpperCase());
-					//						whereC = "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='" + council +"' limit 1)";
+				if (!council.equals(ALL_COUNCILS)) {
+					// sustituir [[WHERE]] por el valor de la columna where y el
+					// codigo adecuado
+					whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]",
+							council.toUpperCase());
+					// whereC =
+					// "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='"
+					// + council +"' limit 1)";
 					query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
 				} else {
 					query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
@@ -274,26 +300,26 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 		}
 
-		private void resultSetToTable(ResultTableModel result, ResultSet rs) throws SQLException{
-			//TODO: don't create empty ResultTableModel
+		private void resultSetToTable(ResultTableModel result, ResultSet rs)
+				throws SQLException {
+			// TODO: don't create empty ResultTableModel
 			ResultSetMetaData metaData = rs.getMetaData();
 			int numColumns = metaData.getColumnCount();
 
-			//Getting the field names of the table
+			// Getting the field names of the table
 			String header[] = new String[numColumns];
-			for (int i=0; i<numColumns; i++) {
-				result.addColumn(metaData.getColumnLabel(i+1));
+			for (int i = 0; i < numColumns; i++) {
+				result.addColumn(metaData.getColumnLabel(i + 1));
 			}
 
-
-			//Getting values of the rows that have failed
+			// Getting values of the rows that have failed
 			int oldErrors = errorsFound;
 
 			while (rs.next()) {
 				errorsFound++;
 				String rowData[] = new String[numColumns];
-				for (int i=0; i<numColumns; i++) {
-					rowData[i] = rs.getString(i+1);
+				for (int i = 0; i < numColumns; i++) {
+					rowData[i] = rs.getString(i + 1);
 				}
 				result.addRow(rowData);
 			}
@@ -314,28 +340,30 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			errorsFound = 0;
 
 			DBSession dbs = DBSession.getCurrentSession();
-			String council = (String)councilCB.getSelectedItem();
+			String council = (String) councilCB.getSelectedItem();
 
-			DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
+			DefaultTableModel model = (DefaultTableModel) validationTB
+					.getModel();
 
 			setProgress(0);
 
 			ArrayList<ResultTableModel> resultsMap = new ArrayList<ResultTableModel>();
-			//check validations
-			int count=0;
-			for (int i = 0; i < model.getRowCount(); i++){
+			// check validations
+			int count = 0;
+			for (int i = 0; i < model.getRowCount(); i++) {
 				Object isChecked = model.getValueAt(i, 0);
-				if (isChecked instanceof Boolean && (Boolean)isChecked){
+				if (isChecked instanceof Boolean && (Boolean) isChecked) {
 
 					// Get CODE of the validation
 					String queryCode = (String) model.getValueAt(i, 1);
-					String queryDescription = (String) model.getValueAt(i,3);
+					String queryDescription = (String) model.getValueAt(i, 3);
 
-					ResultTableModel result = doQuery (queryCode, queryDescription, council);
+					ResultTableModel result = doQuery(queryCode,
+							queryDescription, council);
 					resultsMap.add(result);
 
 					count++;
-					setProgress(count*100/ getCheckedValidationsCount(model));
+					setProgress(count * 100 / getCheckedValidationsCount(model));
 				}
 			}
 			String html = showResultsAsHTML(resultsMap);
@@ -344,15 +372,17 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 
 		/**
-		 * @param model that contains the identifier of the validation and if it must be tested
+		 * @param model
+		 *            that contains the identifier of the validation and if it
+		 *            must be tested
 		 * @return The number of validations that must be tested
 		 */
 		private int getCheckedValidationsCount(DefaultTableModel model) {
-			//get number of validations
-			int total=0;
-			for (int i = 0; i < model.getRowCount(); i++){
+			// get number of validations
+			int total = 0;
+			for (int i = 0; i < model.getRowCount(); i++) {
 				Object isChecked = model.getValueAt(i, 0);
-				if (isChecked instanceof Boolean && (Boolean)isChecked){
+				if (isChecked instanceof Boolean && (Boolean) isChecked) {
 					total++;
 				}
 			}
@@ -365,7 +395,8 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				PluginServices.getMDIManager().closeWindow(progressBarDialog);
 				EIELValidationResultPanel resultPanel;
 				if (councilCB.getSelectedIndex() > 0) {
-					resultPanel = new EIELValidationResultPanel(councilCB.getSelectedItem().toString());
+					resultPanel = new EIELValidationResultPanel(councilCB
+							.getSelectedItem().toString());
 				} else {
 					resultPanel = new EIELValidationResultPanel();
 				}
@@ -384,7 +415,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	}
 
-	public EIELValidationPanel(){
+	public EIELValidationPanel() {
 		super(800, 500);
 		formBody = new FormPanel("forms/validationGUI.jfrm");
 		formBody.setVisible(true);
@@ -404,9 +435,9 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//TODO Add "Todos" to text.properties file
+		// TODO Add "Todos" to text.properties file
 		councilCB.addItem(ALL_COUNCILS);
-		for (int i = 0; i < councils.length; i++){
+		for (int i = 0; i < councils.length; i++) {
 			councilCB.addItem(councils[i]);
 		}
 	}
@@ -416,7 +447,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		DBSession dbs = DBSession.getCurrentSession();
 
 		List<String> forbSchemas = Arrays.asList(FORBIDDEN_SCHEMAS);
-		int currentSch = -1, i=0;
+		int currentSch = -1, i = 0;
 		try {
 			DatabaseMetaData meta = dbs.getJavaConnection().getMetaData();
 			ResultSet res = meta.getSchemas();
@@ -447,17 +478,21 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		model.setRowCount(0);
 
 		try {
-			//[NachoV] Now only retrieves MAP validations
-			String[][] tableContent = dbs.getTable("validacion_consultas", "eiel_aplicaciones", "codigo SIMILAR TO '"+
-					TYPE_OF_VALIDATION +"%' AND modelo = 'A' or modelo = '" + modelSchm + "' ORDER BY codigo");
+			// [NachoV] Now only retrieves MAP validations
+			String[][] tableContent = dbs.getTable("validacion_consultas",
+					"eiel_aplicaciones", "codigo SIMILAR TO '"
+							+ TYPE_OF_VALIDATION
+							+ "%' AND modelo = 'A' or modelo = '" + modelSchm
+							+ "' ORDER BY codigo");
 
 			int numRows = 0;
 			cuadros = new TreeMap<Integer, List<Integer>>();
-			for (int i=0; i<tableContent.length; i++) {
-				//obtener cuadro para el combobox
+			for (int i = 0; i < tableContent.length; i++) {
+				// obtener cuadro para el combobox
 				String cod = tableContent[i][0];
 				if (cod.matches(".*C[0-9][0-9].*")) {
-					String aux = cod.substring(cod.indexOf("C")+1, cod.indexOf("C")+3);
+					String aux = cod.substring(cod.indexOf("C") + 1,
+							cod.indexOf("C") + 3);
 					int cuadro = Integer.parseInt(aux);
 					if (cuadros.containsKey(cuadro)) {
 						List<Integer> codes = cuadros.get(cuadro);
@@ -488,14 +523,14 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 				numRows++;
 
 			}
-			if (numRows==0) {
+			if (numRows == 0) {
 				String[] row = new String[3];
-				for (int i=0; i<row.length; i++) {
+				for (int i = 0; i < row.length; i++) {
 					row[i] = "";
 				}
 				model.addRow(row);
 			}
-			model.fireTableRowsInserted(0, model.getRowCount()-1);
+			model.fireTableRowsInserted(0, model.getRowCount() - 1);
 
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
@@ -504,7 +539,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		validationTB.getModel().addTableModelListener(this);
 		validationTB.repaint();
 
-		//refill cuadro cb
+		// refill cuadro cb
 		fillCuadroCB();
 	}
 
@@ -516,13 +551,12 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		cuadroCB.addActionListener(this);
 	}
 
-
 	public void initValues() {
 
 		// COUNCILS CB
 		fillCouncilsCB();
 
-		//modelo CB (it implies validationTB and cuardoCB)
+		// modelo CB (it implies validationTB and cuardoCB)
 		modeloCB.setSelectedIndex(1);
 
 		fillSchemaCB();
@@ -531,13 +565,13 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	}
 
-	private void refreshSelectCount(){
+	private void refreshSelectCount() {
 		String text = "Validaciones   ";
 		int count = 0;
 		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-		for (int i = 0; i < model.getRowCount(); i++){
+		for (int i = 0; i < model.getRowCount(); i++) {
 			Object value = model.getValueAt(i, 0);
-			if (value instanceof Boolean && (Boolean)value){
+			if (value instanceof Boolean && (Boolean) value) {
 				count++;
 			}
 		}
@@ -548,16 +582,16 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		}
 	}
 
-	private void changeValidationSets(boolean b){
+	private void changeValidationSets(boolean b) {
 		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-		for (int i = 0; i < model.getRowCount(); i++){
+		for (int i = 0; i < model.getRowCount(); i++) {
 			model.setValueAt(b, i, 0);
 		}
 	}
 
 	private void setMandatoryValidations() {
 		DefaultTableModel model = (DefaultTableModel) validationTB.getModel();
-		for (int i = 0; i< model.getRowCount(); i++) {
+		for (int i = 0; i < model.getRowCount(); i++) {
 			String mandatory = model.getValueAt(i, 4).toString();
 			if (mandatory.equals("SI")) {
 				model.setValueAt(true, i, 0);
@@ -570,11 +604,11 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	private void initComboBoxes() {
 		modeloCB = (JComboBox) formBody.getComponentByName(ID_MODELOCB);
 		schemaCB = (JComboBox) formBody.getComponentByName(ID_SCHEMACB);
-		councilCB = (JComboBox)formBody.getComponentByName(ID_COUNCILCB);
+		councilCB = (JComboBox) formBody.getComponentByName(ID_COUNCILCB);
 		cuadroCB = (JComboBox) formBody.getComponentByName(ID_CUADROCB);
 		modeloCB.addActionListener(new ActionListener() {
 
-			String[] modelos = {"T", "M"};
+			String[] modelos = { "T", "M" };
 
 			public void actionPerformed(ActionEvent e) {
 				JComboBox cb = (JComboBox) e.getSource();
@@ -587,31 +621,33 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	private void initValidationTable() {
 
-		validationTB = (JTable)formBody.getComponentByName( ID_VALIDATIONTB);
-		validationTB.addMouseListener(new MouseAdapter(){
-			public void mouseClicked(MouseEvent e){
-				if (e.getClickCount() == 2){
-					JTable target = (JTable)e.getSource();
+		validationTB = (JTable) formBody.getComponentByName(ID_VALIDATIONTB);
+		validationTB.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					JTable target = (JTable) e.getSource();
 					int rowIndex = target.getSelectedRow();
 					// Codigo are on column = 1 on the JTable qPanel
-					String code = (String) target.getModel().getValueAt(rowIndex, 1);
-					EIELValidationSQLPanel sqlPanel = new EIELValidationSQLPanel(code);
+					String code = (String) target.getModel().getValueAt(
+							rowIndex, 1);
+					EIELValidationSQLPanel sqlPanel = new EIELValidationSQLPanel(
+							code);
 					PluginServices.getMDIManager().addWindow(sqlPanel);
 				}
 			}
-		} );
+		});
 
 		// VALIDATIONS TABLE
 		DefaultTableModel model = new ValidationTableModel();
 		validationTB.setModel(model);
-		String[] columnNames = {"NUM", "COD", "GR", "Descripcion", "Obl"};
+		String[] columnNames = { "NUM", "COD", "GR", "Descripcion", "Obl" };
 
 		model.setRowCount(0);
 		validationTB.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		validationTB.setRowSelectionAllowed(true);
 		validationTB.setColumnSelectionAllowed(false);
 
-		//TODO Add CHECKBOX, GROUP and SQL? column!!!
+		// TODO Add CHECKBOX, GROUP and SQL? column!!!
 
 		TableColumn column00 = new TableColumn();
 		model.addColumn(column00);
@@ -628,36 +664,42 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		TableColumn column04 = new TableColumn();
 		model.addColumn(column04);
 
-		validationTB.getColumnModel().getColumn(0).setHeaderValue(columnNames[0]);
+		validationTB.getColumnModel().getColumn(0)
+				.setHeaderValue(columnNames[0]);
 		validationTB.getColumnModel().getColumn(0).setMaxWidth(35);
-		validationTB.getColumnModel().getColumn(1).setHeaderValue(columnNames[1]);
+		validationTB.getColumnModel().getColumn(1)
+				.setHeaderValue(columnNames[1]);
 		validationTB.getColumnModel().getColumn(1).setMinWidth(100);
 		validationTB.getColumnModel().getColumn(1).setMaxWidth(110);
-		validationTB.getColumnModel().getColumn(2).setHeaderValue(columnNames[2]);
+		validationTB.getColumnModel().getColumn(2)
+				.setHeaderValue(columnNames[2]);
 		validationTB.getColumnModel().getColumn(2).setMaxWidth(20);
-		validationTB.getColumnModel().getColumn(3).setHeaderValue(columnNames[3]);
-		validationTB.getColumnModel().getColumn(3).setCellRenderer(new ValidationTableCellRenderer());
-		validationTB.getColumnModel().getColumn(4).setHeaderValue(columnNames[4]);
+		validationTB.getColumnModel().getColumn(3)
+				.setHeaderValue(columnNames[3]);
+		validationTB.getColumnModel().getColumn(3)
+				.setCellRenderer(new ValidationTableCellRenderer());
+		validationTB.getColumnModel().getColumn(4)
+				.setHeaderValue(columnNames[4]);
 		validationTB.getColumnModel().getColumn(4).setMaxWidth(35);
 	}
 
 	private void initButtons() {
-		selectAllB = (JButton)formBody.getComponentByName( ID_SELECTALLB);
+		selectAllB = (JButton) formBody.getComponentByName(ID_SELECTALLB);
 		selectAllB.addActionListener(this);
-		selectManB = (JButton)formBody.getComponentByName(ID_SELECTMANB);
+		selectManB = (JButton) formBody.getComponentByName(ID_SELECTMANB);
 		selectManB.addActionListener(this);
-		selectCleanB = (JButton)formBody.getComponentByName( ID_SELECTCLEANB);
+		selectCleanB = (JButton) formBody.getComponentByName(ID_SELECTCLEANB);
 		selectCleanB.addActionListener(this);
-		selectLoadB = (JButton)formBody.getComponentByName( ID_SELECTLOADB);
+		selectLoadB = (JButton) formBody.getComponentByName(ID_SELECTLOADB);
 		selectLoadB.setVisible(false);
 		selectLoadB.addActionListener(this);
-		selectSaveB = (JButton)formBody.getComponentByName( ID_SELECTSAVEB);
+		selectSaveB = (JButton) formBody.getComponentByName(ID_SELECTSAVEB);
 		selectSaveB.setVisible(false);
 		selectSaveB.addActionListener(this);
-		//		exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
-		//		exportB.setVisible(true);
-		//		exportB.addActionListener(this);
-		validateB = (JButton)formBody.getComponentByName( ID_VALIDATEB);
+		// exportB = ((JButton)formBody.getComponentByName( ID_EXPORTB));
+		// exportB.setVisible(true);
+		// exportB.addActionListener(this);
+		validateB = (JButton) formBody.getComponentByName(ID_VALIDATEB);
 		validateB.addActionListener(this);
 	}
 
@@ -678,7 +720,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 
 	private void executeValidations() {
 
-		//create progress bar
+		// create progress bar
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setValue(0);
 		progressBar.setStringPainted(true);
@@ -691,7 +733,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 		progressBarDialog.setTitle("Validando...");
 		PluginServices.getMDIManager().addCentredWindow(progressBarDialog);
 
-		//start validation task
+		// start validation task
 		PluginServices.getMDIManager().setWaitCursor();
 		ValidateTask vt = new ValidateTask();
 		vt.addPropertyChangeListener(this);
@@ -700,7 +742,7 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == selectAllB){
+		if (e.getSource() == selectAllB) {
 			changeValidationSets(true);
 			return;
 		}
@@ -709,23 +751,23 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			setMandatoryValidations();
 		}
 
-		if (e.getSource() == selectCleanB){
+		if (e.getSource() == selectCleanB) {
 			changeValidationSets(false);
 			return;
 		}
 
-		if (e.getSource() == selectLoadB){
-			//TODO
+		if (e.getSource() == selectLoadB) {
+			// TODO
 			return;
 		}
 
-		if (e.getSource() == selectSaveB){
-			//TODO
+		if (e.getSource() == selectSaveB) {
+			// TODO
 			return;
 		}
 
-		if (e.getSource() == validateB){
-			//TODO
+		if (e.getSource() == validateB) {
+			// TODO
 			executeValidations();
 			return;
 
@@ -736,30 +778,30 @@ public class EIELValidationPanel extends gvWindow implements TableModelListener,
 			int cuadro = Integer.parseInt(aux);
 			List<Integer> indexes = cuadros.get(cuadro);
 			TableModel model = validationTB.getModel();
-			for (int i=0; i<model.getRowCount(); i++) {
+			for (int i = 0; i < model.getRowCount(); i++) {
 				boolean selected = indexes.contains(i);
 				model.setValueAt(selected, i, 0);
 			}
 		}
 
-		//		if (e.getSource() == exportB){
-		//			JFileChooser fc = new JFileChooser();
-		//			fc.showSaveDialog(fc);
-		//			File fFile=fc.getSelectedFile();
-		//			String filePath = fFile.getPath();
-		//			FileOutputStream fo;
-		//			try {
-		//				fo = new FileOutputStream(filePath);
-		//				PrintStream ps=new PrintStream(fo);
-		//				ps.println(resultTA.getText());
-		//				ps.close();
-		//				fo.close();
-		//			} catch (IOException e1) {
-		//				// TODO Auto-generated catch block
-		//				e1.printStackTrace();
-		//			}
-		//			return;
-		//		}
+		// if (e.getSource() == exportB){
+		// JFileChooser fc = new JFileChooser();
+		// fc.showSaveDialog(fc);
+		// File fFile=fc.getSelectedFile();
+		// String filePath = fFile.getPath();
+		// FileOutputStream fo;
+		// try {
+		// fo = new FileOutputStream(filePath);
+		// PrintStream ps=new PrintStream(fo);
+		// ps.println(resultTA.getText());
+		// ps.close();
+		// fo.close();
+		// } catch (IOException e1) {
+		// // TODO Auto-generated catch block
+		// e1.printStackTrace();
+		// }
+		// return;
+		// }
 	}
 
 	public void propertyChange(PropertyChangeEvent evt) {

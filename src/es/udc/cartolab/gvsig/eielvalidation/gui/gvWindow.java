@@ -30,29 +30,32 @@ public class gvWindow extends JPanel implements IWindow {
 	private int width = 400;
 	private int height = 400;
 
-	public gvWindow(){
+	public gvWindow() {
 		this(400, 400, true);
 	}
 
-	public gvWindow(int width, int height){
+	public gvWindow(int width, int height) {
 		this(width, height, true);
 	}
 
-	public gvWindow(int width, int height, boolean resizable){
+	public gvWindow(int width, int height, boolean resizable) {
 		INITIAL_SIZE = true;
 		if (resizable) {
-			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.PALETTE);
+			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
+					| WindowInfo.PALETTE);
 		} else {
-			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
+					| WindowInfo.RESIZABLE | WindowInfo.PALETTE);
 		}
 		this.width = width;
 		this.height = height;
 	}
 
-	public WindowInfo getWindowInfo(){
-		if (INITIAL_SIZE){
+	public WindowInfo getWindowInfo() {
+		if (INITIAL_SIZE) {
 			if (viewInfo == null) {
-				viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.PALETTE);
+				viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
+						| WindowInfo.PALETTE);
 			}
 			viewInfo.setHeight(height);
 			viewInfo.setWidth(width);
@@ -61,7 +64,8 @@ public class gvWindow extends JPanel implements IWindow {
 			aux.add(this);
 			aux.pack();
 			if (viewInfo == null) {
-				viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG | WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+				viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
+						| WindowInfo.RESIZABLE | WindowInfo.PALETTE);
 			}
 			viewInfo.setHeight(aux.getHeight());
 			viewInfo.setWidth(aux.getWidth());
@@ -71,8 +75,7 @@ public class gvWindow extends JPanel implements IWindow {
 		return viewInfo;
 	}
 
-
-	public void setTitle(String title){
+	public void setTitle(String title) {
 		viewInfo.setTitle(title);
 	}
 

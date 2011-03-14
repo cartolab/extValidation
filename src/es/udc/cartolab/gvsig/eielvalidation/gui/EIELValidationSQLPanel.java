@@ -50,8 +50,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 	public final String ID_OKB = "okB";
 	private JButton okB;
 
-
-	public EIELValidationSQLPanel(String code){
+	public EIELValidationSQLPanel(String code) {
 		super(500, 400);
 		formBody = new FormPanel("forms/validationSQL.jfrm");
 		formBody.setVisible(true);
@@ -70,21 +69,23 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 	}
 
 	public void initWidgets() {
-		descriptionTA = (JEditorPane)formBody.getComponentByName( ID_DESCRIPTIONTA);
+		descriptionTA = (JEditorPane) formBody
+				.getComponentByName(ID_DESCRIPTIONTA);
 		descriptionTA.setEditable(false);
-		//resultTA.setContentType("text/html");
+		// resultTA.setContentType("text/html");
 
-		sqlTA = (JEditorPane)formBody.getComponentByName( ID_SQLTA);
+		sqlTA = (JEditorPane) formBody.getComponentByName(ID_SQLTA);
 		sqlTA.setEditable(false);
-		//resultTA.setContentType("text/html");
+		// resultTA.setContentType("text/html");
 
-		okB = (JButton)formBody.getComponentByName( ID_OKB);
+		okB = (JButton) formBody.getComponentByName(ID_OKB);
 		okB.addActionListener(this);
 
 	}
 
 	private void getValidations() {
-		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to
+		// make a quick replace.
 		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = DBSession.getCurrentSession().getSchema();
 
@@ -92,10 +93,10 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 		try {
 			DBSession dbs = DBSession.getCurrentSession();
 			String[][] tableContent = dbs.getTable("validacion_consultas",
-					"eiel_aplicaciones",
-					"codigo = '"+ validation_code + "'");
+					"eiel_aplicaciones", "codigo = '" + validation_code + "'");
 			String query = tableContent[0][1];
-			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to make a quick replace.
+			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is
+			// to make a quick replace.
 			query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
 
 			Connection con = dbs.getJavaConnection();
@@ -105,34 +106,37 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 
 			ResultSet rs = stat.executeQuery(query);
 
-			//COPY FROM DBSession.getTable()
+			// COPY FROM DBSession.getTable()
 			String text = "";
 			DatabaseMetaData metadataDB = con.getMetaData();
-			ResultSet columns = metadataDB.getColumns(null, null, "validacion_consultas", "%");
+			ResultSet columns = metadataDB.getColumns(null, null,
+					"validacion_consultas", "%");
 			List<String> fieldNames = new ArrayList<String>();
 
 			while (columns.next()) {
 				fieldNames.add(columns.getString("Column_Name"));
 			}
 			while (rs.next()) {
-				for (int j=0; j<fieldNames.size(); j++) {
+				for (int j = 0; j < fieldNames.size(); j++) {
 					String val = rs.getString(fieldNames.get(j));
-					if (val == null || val.compareTo("")==0) {
+					if (val == null || val.compareTo("") == 0) {
 						val = " ";
 					}
 					text = text + val + "|";
 				}
 				text = text + "|#|";
-				//text = text + rs.getString(fieldNames[fieldNames.length-1]);
+				// text = text + rs.getString(fieldNames[fieldNames.length-1]);
 			}
 			rs.close();
 
 			sf.append("<h4 style=\"color: blue\">" + validation_code + "</h4>");
-			sf.append("<p style=\"color: green\">" + tableContent[0][1] + "</p>");
+			sf.append("<p style=\"color: green\">" + tableContent[0][1]
+					+ "</p>");
 			sf.append("<p style=\"color: red\">" + text + "</p>");
 
 		} catch (SQLException e1) {
-			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage() + "</h2>");
+			sf.append("<h2 style=\"color: red\"> ERROR: " + e1.getMessage()
+					+ "</h2>");
 			e1.printStackTrace();
 		}
 		sf.append("<hr>");
@@ -141,7 +145,7 @@ public class EIELValidationSQLPanel extends gvWindow implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 
-		if (e.getSource() == okB){
+		if (e.getSource() == okB) {
 			this.setVisible(false);
 			return;
 		}

@@ -87,40 +87,42 @@ public class ResultTableModel extends DefaultTableModel {
 	// Setters to define some features of the TableModel
 	/**
 	 * define which columns of the table are editable
-	 * @param editableColumns Name that identifies the column. This is the name of the field
-	 * + in the recordset
+	 * 
+	 * @param editableColumns
+	 *            Name that identifies the column. This is the name of the field
+	 *            + in the recordset
 	 */
 	public void setEditableColumns(String[] editableColumns) {
-		if (editableColumns!=null || editableColumns.length > 0) {
-			this.editableColumns = new HashSet<String>(Arrays.asList(editableColumns));
+		if (editableColumns != null || editableColumns.length > 0) {
+			this.editableColumns = new HashSet<String>(
+					Arrays.asList(editableColumns));
 		}
 	}
-
 
 	public Class<?> getColumnClass(int c) {
 		return getValueAt(0, c).getClass();
 	}
 
-
 	/**
-	 * Define which columns of the table exists in the model but not
-	 * in the view
-	 * @param invisibleColumns Name that identifies the column. This is the name of the field
-	 * + in the recordset
+	 * Define which columns of the table exists in the model but not in the view
+	 * 
+	 * @param invisibleColumns
+	 *            Name that identifies the column. This is the name of the field
+	 *            + in the recordset
 	 */
-	public void setInvisibleColumns (String[] invisibleColumns) {
-		if (invisibleColumns!=null || invisibleColumns.length > 0) {
-			this.invisibleColumns = new HashSet<String>(Arrays.asList(invisibleColumns));
+	public void setInvisibleColumns(String[] invisibleColumns) {
+		if (invisibleColumns != null || invisibleColumns.length > 0) {
+			this.invisibleColumns = new HashSet<String>(
+					Arrays.asList(invisibleColumns));
 		}
 	}
 
-
-
 	// Methods overided of the AbstractTableModel
-	public boolean isCellEditable (int row, int col) {
+	public boolean isCellEditable(int row, int col) {
 		boolean editable = false;
 
-		if (this.editableColumns == null || this.editableColumns.contains(getColumnName(col))) {
+		if (this.editableColumns == null
+				|| this.editableColumns.contains(getColumnName(col))) {
 			editable = true;
 		}
 
@@ -133,21 +135,20 @@ public class ResultTableModel extends DefaultTableModel {
 
 		String html = "<table border=\"1\"><tr>";
 
-		for (int i=0; i<columnCount; i++) {
+		for (int i = 0; i < columnCount; i++) {
 			html = html + "<td>" + getColumnName(i) + "</td>";
 		}
 		html = html + "</tr>";
 
-		for (int row=0; row < getRowCount(); row++) {
+		for (int row = 0; row < getRowCount(); row++) {
 			html = html + "<tr>";
-			for (int column=0; column<columnCount; column++) {
+			for (int column = 0; column < columnCount; column++) {
 				html = html + "<td>" + getValueAt(row, column) + "</td>";
 			}
 			html = html + "</tr>";
 		}
 
 		html = html + "</table>";
-
 
 		return html;
 	}

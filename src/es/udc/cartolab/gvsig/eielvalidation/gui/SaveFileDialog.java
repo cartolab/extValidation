@@ -29,31 +29,33 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.iver.andami.PluginServices;
 
-
 /**
- * <code>SaveFileDialog</code> provides a simple mechanism for the user to choose a file
- * to write some content on it. It also provides methods to write contents to disk.
- * The user is prompted before overwrite an existing file and a filter for show only some
- * files based on their extension can be set. If a filter is seted the first extension
- * provided to the constructor is used as default extension. This is, if the user don't add
- * it to the choosen file name it's added.
+ * <code>SaveFileDialog</code> provides a simple mechanism for the user to
+ * choose a file to write some content on it. It also provides methods to write
+ * contents to disk. The user is prompted before overwrite an existing file and
+ * a filter for show only some files based on their extension can be set. If a
+ * filter is seted the first extension provided to the constructor is used as
+ * default extension. This is, if the user don't add it to the choosen file name
+ * it's added.
  * <p>
  * The following code pops up a file chooser for the user's home directory that
- * sees only .html and .htm (and is equivalent in uppercase). .html is appended to the name
- * of the file. Then a String is writed to disk:
+ * sees only .html and .htm (and is equivalent in uppercase). .html is appended
+ * to the name of the file. Then a String is writed to disk:
+ * 
  * <pre>
- *   SaveFileDialog sfd = new SaveFileDialog("HTML files", "html", "htm");
- *			File f = sfd.showDialog();
- *			if (f!=null) {
- *	 			if (! sfd.writeFileToDisk(contents, f)) {
- *					NotificationManager.showMessageError("error_saving_file", null);
- *				}
- *			}
+ * SaveFileDialog sfd = new SaveFileDialog(&quot;HTML files&quot;, &quot;html&quot;, &quot;htm&quot;);
+ * File f = sfd.showDialog();
+ * if (f != null) {
+ * 	if (!sfd.writeFileToDisk(contents, f)) {
+ * 		NotificationManager.showMessageError(&quot;error_saving_file&quot;, null);
+ * 	}
+ * }
  * </pre>
+ * 
  * </p>
- *
+ * 
  * @version 0.1 26/10/2010
- *
+ * 
  */
 @SuppressWarnings("serial")
 public class SaveFileDialog extends JFileChooser {
@@ -61,12 +63,16 @@ public class SaveFileDialog extends JFileChooser {
 	private FileFilter filter = null;
 	private String defaultExtension = null;
 
-
 	/**
-	 * if extensions are provided extensions[0] will be the appended to the fileName if it doesn't have jet
-	 * @param description A string to be shown in the filter files combobox
-	 * @param extensions The extensions wanted to be filtered. Must be lowercase, uppercase validity is handled
-	 * automaticaly. extensions[0] will be the default extension.
+	 * if extensions are provided extensions[0] will be the appended to the
+	 * fileName if it doesn't have jet
+	 * 
+	 * @param description
+	 *            A string to be shown in the filter files combobox
+	 * @param extensions
+	 *            The extensions wanted to be filtered. Must be lowercase,
+	 *            uppercase validity is handled automaticaly. extensions[0] will
+	 *            be the default extension.
 	 */
 	public SaveFileDialog(String description, String... extensions) {
 		super();
@@ -79,7 +85,8 @@ public class SaveFileDialog extends JFileChooser {
 	}
 
 	/**
-	 * @return null if user cancel save operation, the File to save in other case.
+	 * @return null if user cancel save operation, the File to save in other
+	 *         case.
 	 */
 	public File showDialog() {
 		File file = null;
@@ -97,14 +104,17 @@ public class SaveFileDialog extends JFileChooser {
 
 			// Add the default extension
 			if (defaultExtension != null) {
-				if (! tmpFile.getName().toLowerCase().endsWith("." + defaultExtension)) {
-					tmpFile = new File(tmpFile.getAbsolutePath() + "." + defaultExtension);
+				if (!tmpFile.getName().toLowerCase()
+						.endsWith("." + defaultExtension)) {
+					tmpFile = new File(tmpFile.getAbsolutePath() + "."
+							+ defaultExtension);
 				}
 			}
 
 			if (tmpFile.exists()) {
-				int overwriteFile = JOptionPane.showConfirmDialog(null, PluginServices.getText(this, "file_already_exists"),
-						PluginServices.getText(this,"warning"),
+				int overwriteFile = JOptionPane.showConfirmDialog(null,
+						PluginServices.getText(this, "file_already_exists"),
+						PluginServices.getText(this, "warning"),
 						JOptionPane.YES_NO_OPTION);
 				if (overwriteFile == JOptionPane.NO_OPTION) {
 					continue;
@@ -119,8 +129,10 @@ public class SaveFileDialog extends JFileChooser {
 	}
 
 	/**
-	 * @param contents to be write to disk
-	 * @param file to write
+	 * @param contents
+	 *            to be write to disk
+	 * @param file
+	 *            to write
 	 * @return true if there was any trouble
 	 */
 	public boolean writeFileToDisk(String contents, File file) {
@@ -129,7 +141,7 @@ public class SaveFileDialog extends JFileChooser {
 		boolean error = false;
 		try {
 			fos = new FileOutputStream(file);
-			ps=new PrintStream(fos);
+			ps = new PrintStream(fos);
 			ps.println(contents);
 		} catch (IOException e1) {
 			error = true;
