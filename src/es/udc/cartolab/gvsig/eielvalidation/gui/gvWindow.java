@@ -20,6 +20,7 @@ package es.udc.cartolab.gvsig.eielvalidation.gui;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
@@ -29,6 +30,8 @@ public class gvWindow extends JPanel implements IWindow {
 	private boolean INITIAL_SIZE = false;
 	private int width = 400;
 	private int height = 400;
+	int code;
+	boolean modal;
 
 	public gvWindow() {
 		this(400, 400, true);
@@ -39,14 +42,23 @@ public class gvWindow extends JPanel implements IWindow {
 	}
 
 	public gvWindow(int width, int height, boolean resizable) {
+		this(width, height, true, false);
+	}
+
+	public gvWindow(int width, int height, boolean resizable, boolean modal) {
 		INITIAL_SIZE = true;
-		if (resizable) {
-			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
-					| WindowInfo.PALETTE);
+		this.modal = modal;
+		if (modal) {
+			code = WindowInfo.MODALDIALOG;
 		} else {
-			viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
-					| WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+			code = WindowInfo.MODELESSDIALOG | WindowInfo.PALETTE;
 		}
+		if (resizable) {
+			code = code | WindowInfo.RESIZABLE;
+		}
+		viewInfo = new WindowInfo(code);
+		viewInfo.setWidth(width);
+		viewInfo.setHeight(height);
 		this.width = width;
 		this.height = height;
 	}
@@ -54,8 +66,7 @@ public class gvWindow extends JPanel implements IWindow {
 	public WindowInfo getWindowInfo() {
 		if (INITIAL_SIZE) {
 			if (viewInfo == null) {
-				viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
-						| WindowInfo.PALETTE);
+				viewInfo = new WindowInfo(code);
 			}
 			viewInfo.setHeight(height);
 			viewInfo.setWidth(width);
@@ -64,8 +75,7 @@ public class gvWindow extends JPanel implements IWindow {
 			aux.add(this);
 			aux.pack();
 			if (viewInfo == null) {
-				viewInfo = new WindowInfo(WindowInfo.MODELESSDIALOG
-						| WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+				viewInfo = new WindowInfo(code);
 			}
 			viewInfo.setHeight(aux.getHeight());
 			viewInfo.setWidth(aux.getWidth());
@@ -81,5 +91,17 @@ public class gvWindow extends JPanel implements IWindow {
 
 	public Object getWindowProfile() {
 		return null;
+	}
+
+	public void open() {
+		if (!modal) {
+			PluginServices.getMDIManager().addCentredWindow(this);
+		} else {
+			PluginServices.getMDIManager().addWindow(this);
+		}
+	}
+
+	public void close() {
+		PluginServices.getMDIManager().closeWindow(this);
 	}
 }

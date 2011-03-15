@@ -22,8 +22,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -39,8 +37,6 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
@@ -58,7 +54,7 @@ import com.jeta.forms.components.panel.FormPanel;
 import es.udc.cartolab.gvsig.users.utils.DBSession;
 
 public class EIELValidationPanel extends gvWindow implements
-		TableModelListener, ActionListener, PropertyChangeListener {
+		TableModelListener, ActionListener {
 
 	private final String ALL_COUNCILS = "** Todos **";
 
@@ -112,8 +108,6 @@ public class EIELValidationPanel extends gvWindow implements
 	public final String ID_VALIDATEB = "validateB";
 	private JButton validateB;
 
-	private JProgressBar progressBar;
-	private gvWindow progressBarDialog;
 	private TreeMap<Integer, List<Integer>> cuadros;
 
 	private static final Logger logger = Logger
@@ -388,6 +382,7 @@ public class EIELValidationPanel extends gvWindow implements
 
 					count++;
 					setProgress(count * 100 / getCheckedValidationsCount(model));
+					Thread.sleep(1L);
 				}
 			}
 			String html = showResultsAsHTML(resultsMap);
@@ -414,27 +409,28 @@ public class EIELValidationPanel extends gvWindow implements
 		}
 
 		public void done() {
-			try {
-				String str = get();
-				PluginServices.getMDIManager().closeWindow(progressBarDialog);
-				EIELValidationResultPanel resultPanel;
-				if (councilCB.getSelectedIndex() > 0) {
-					resultPanel = new EIELValidationResultPanel(councilCB
-							.getSelectedItem().toString());
-				} else {
-					resultPanel = new EIELValidationResultPanel();
+			if (!isCancelled()) {
+				try {
+					String str = get();
+					EIELValidationResultPanel resultPanel;
+					if (councilCB.getSelectedIndex() > 0) {
+						resultPanel = new EIELValidationResultPanel(councilCB
+								.getSelectedItem().toString());
+					} else {
+						resultPanel = new EIELValidationResultPanel();
+					}
+					PluginServices.getMDIManager()
+							.addCentredWindow(resultPanel);
+					resultPanel.setResult(str);
+					PluginServices.getMDIManager().restoreCursor();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				PluginServices.getMDIManager().addCentredWindow(resultPanel);
-				resultPanel.setResult(str);
-				PluginServices.getMDIManager().restoreCursor();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-
 		}
 
 	}
@@ -744,24 +740,9 @@ public class EIELValidationPanel extends gvWindow implements
 
 	private void executeValidations() {
 
-		// create progress bar
-		progressBar = new JProgressBar(0, 100);
-		progressBar.setValue(0);
-		progressBar.setStringPainted(true);
-
-		JPanel panel = new JPanel();
-		panel.add(progressBar);
-
-		progressBarDialog = new gvWindow(180, 30);
-		progressBarDialog.add(panel);
-		progressBarDialog.setTitle("Validando...");
-		PluginServices.getMDIManager().addCentredWindow(progressBarDialog);
-
-		// start validation task
-		PluginServices.getMDIManager().setWaitCursor();
 		ValidateTask vt = new ValidateTask();
-		vt.addPropertyChangeListener(this);
-		vt.execute();
+		ProgressBarDialog progressBarDialog = new ProgressBarDialog(vt);
+		progressBarDialog.open();
 
 	}
 
@@ -828,11 +809,4 @@ public class EIELValidationPanel extends gvWindow implements
 		// }
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) {
-		Object obj = evt.getNewValue();
-		if (obj instanceof Integer) {
-			int progress = (Integer) evt.getNewValue();
-			progressBar.setValue(progress);
-		}
-	}
 }
