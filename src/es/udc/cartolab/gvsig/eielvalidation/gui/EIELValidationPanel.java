@@ -419,8 +419,7 @@ public class EIELValidationPanel extends gvWindow implements
 					} else {
 						resultPanel = new EIELValidationResultPanel();
 					}
-					PluginServices.getMDIManager()
-							.addCentredWindow(resultPanel);
+					resultPanel.open();
 					resultPanel.setResult(str);
 					PluginServices.getMDIManager().restoreCursor();
 				} catch (InterruptedException e) {
@@ -652,7 +651,7 @@ public class EIELValidationPanel extends gvWindow implements
 							rowIndex, 1);
 					EIELValidationSQLPanel sqlPanel = new EIELValidationSQLPanel(
 							code);
-					PluginServices.getMDIManager().addWindow(sqlPanel);
+					sqlPanel.open();
 				}
 			}
 		});

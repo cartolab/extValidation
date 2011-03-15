@@ -29,7 +29,7 @@ public class EIELValidationExtension extends Extension {
 
 	public void execute(String actionCommand) {
 		EIELValidationPanel validationPanel = new EIELValidationPanel();
-		PluginServices.getMDIManager().addWindow(validationPanel);
+		validationPanel.open();
 	}
 
 	public void initialize() {
