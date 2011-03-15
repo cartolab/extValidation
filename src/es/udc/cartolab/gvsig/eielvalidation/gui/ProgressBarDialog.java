@@ -76,11 +76,7 @@ public class ProgressBarDialog extends gvWindow implements IWindowListener,
 	}
 
 	public WindowInfo getWindowInfo() {
-		if (viewInfo == null) {
-
-		}
 		return viewInfo;
-
 	}
 
 	public void propertyChange(PropertyChangeEvent evt) {
@@ -88,10 +84,8 @@ public class ProgressBarDialog extends gvWindow implements IWindowListener,
 		if (obj instanceof Integer) {
 			int progress = (Integer) evt.getNewValue();
 			progressBar.setValue(progress);
-			if (progress == 100) {
-				// close dialog on complete progress
-				close();
-			}
+		} else if (obj.equals(SwingWorker.StateValue.DONE)) {
+			close();
 		}
 	}
 

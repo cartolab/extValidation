@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
@@ -122,6 +123,9 @@ public class EIELValidationPanel extends gvWindow implements
 		// make a quick replace.
 		String OLD_SCHEMA = "EIEL_MAP_MUNICIPAL";
 		String NEW_SCHEMA = schemaCB.getSelectedItem().toString();
+
+		private boolean sqlError = false;
+		private String error = "";
 
 		public String showResultsAsHTML(ArrayList<ResultTableModel> resultMap) {
 			StringBuffer sf = new StringBuffer();
@@ -264,7 +268,7 @@ public class EIELValidationPanel extends gvWindow implements
 		 * Executes the wished query
 		 */
 		private ResultTableModel doQuery(String queryCode,
-				String queryDescription, String council) {
+				String queryDescription, String council) throws Exception {
 
 			DBSession dbs = DBSession.getCurrentSession();
 			Connection con = null;
@@ -309,6 +313,9 @@ public class EIELValidationPanel extends gvWindow implements
 				result.setError(true);
 				result.setErroMessage(e.getMessage());
 				logger.error(e.getMessage(), e);
+				sqlError = true;
+				error = e.getMessage();
+				throw new Exception(e.getMessage());
 			} finally {
 				closeResultSet(rs);
 				closeStatement(st);
@@ -409,7 +416,7 @@ public class EIELValidationPanel extends gvWindow implements
 		}
 
 		public void done() {
-			if (!isCancelled()) {
+			if (!isCancelled() && !sqlError) {
 				try {
 					String str = get();
 					EIELValidationResultPanel resultPanel;
@@ -429,6 +436,12 @@ public class EIELValidationPanel extends gvWindow implements
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			} else if (sqlError) {
+				String message = error + "\n"
+						+ PluginServices.getText(this, "checkSchema");
+				JOptionPane.showMessageDialog(null, message,
+						PluginServices.getText(this, "validationError"),
+						JOptionPane.ERROR_MESSAGE);
 			}
 		}
 
