@@ -33,10 +33,10 @@ public class EIELValidationExtension extends Extension {
 	}
 
 	public void initialize() {
-		About about = (About) PluginServices.getExtension(About.class);
-		FPanelAbout panelAbout = about.getAboutPanel();
-		java.net.URL aboutURL = this.getClass().getResource("/about.html");
-		panelAbout.addAboutUrl("Validation", aboutURL);
+//		About about = (About) PluginServices.getExtension(About.class);
+//		FPanelAbout panelAbout = about.getAboutPanel();
+//		java.net.URL aboutURL = this.getClass().getResource("/about.html");
+//		panelAbout.addAboutUrl("Validation", aboutURL);
 	}
 
 	public boolean isEnabled() {

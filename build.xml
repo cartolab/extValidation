@@ -62,7 +62,7 @@
 	  	</copy>
 
 	    <copy file="config/config.xml" todir="${dist}"/>
-		<copy file="config/about.html" todir="${dist}"/>
+		<!-- <copy file="config/about.html" todir="${dist}"/> -->
 		<copy todir="${dist}">
 			<fileset dir="config" includes="text*.properties"/>
 		</copy>
