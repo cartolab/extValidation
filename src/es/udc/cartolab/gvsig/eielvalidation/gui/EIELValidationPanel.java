@@ -50,6 +50,7 @@ import javax.swing.table.TableModel;
 import org.apache.log4j.Logger;
 
 import com.iver.andami.PluginServices;
+import com.iver.cit.gvsig.fmap.drivers.DBException;
 import com.jeta.forms.components.panel.FormPanel;
 
 import es.udc.cartolab.gvsig.users.utils.DBSession;
@@ -117,6 +118,107 @@ public class EIELValidationPanel extends gvWindow implements
 	private int errorsFound = 0;
 	private int validationsFail = 0;
 
+	private class RunStatementThread extends Thread {
+
+		private Statement st = null;
+		private ResultSet rs = null;
+		private Connection con;
+		private boolean finished = false;
+		private String error = null;
+		private String query;
+
+		public RunStatementThread(Connection con, String query) {
+			this.con = con;
+			this.query = query;
+		}
+
+		public void run() {
+			try {
+				st = con.createStatement();
+				rs = st.executeQuery(query);
+				finished = true;
+			} catch (SQLException e) {
+				finished = false;
+				error = e.getMessage();
+				close();
+			}
+		}
+
+		public void cancel() throws SQLException, DBException {
+			if (st != null) {
+				st.cancel();
+				DBSession.reconnect();
+			}
+		}
+
+		public ResultSet getResult() {
+			if (finished) {
+				return rs;
+			} else {
+				return null;
+			}
+		}
+
+		/**
+		 * Close a ResultSet
+		 * 
+		 * @param rs
+		 *            , the resultset to be closed
+		 * @return true if the resulset was correctly closed. false in any other
+		 *         case
+		 */
+		public boolean closeResultSet(ResultSet rs) {
+			boolean error = false;
+
+			if (rs != null) {
+				try {
+					rs.close();
+					error = true;
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+
+			return error;
+		}
+
+		/**
+		 * Close a Statement
+		 * 
+		 * @param st
+		 *            , the statement to be closed
+		 * @return true if the statement was correctly closed, false in any
+		 *         other case
+		 */
+		public boolean closeStatement(Statement st) {
+			boolean error = false;
+
+			if (st != null) {
+				try {
+					st.close();
+					error = true;
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+
+			return error;
+		}
+
+		public void close() {
+			closeResultSet(rs);
+			closeStatement(st);
+		}
+
+		public boolean hasFinished() {
+			return finished;
+		}
+
+		public String getError() {
+			return error;
+		}
+	}
+
 	private class ValidateTask extends SwingWorker<String, Void> {
 
 		// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This is to
@@ -126,6 +228,66 @@ public class EIELValidationPanel extends gvWindow implements
 
 		private boolean sqlError = false;
 		private String error = "";
+		private RunStatementThread thread = null;
+
+		/**
+		 * Close a Connection
+		 * 
+		 * @param conn
+		 *            , the connection to be closed
+		 * @return true if the connection was correctly closed, false in any
+		 *         other case
+		 */
+		public boolean closeConnection(Connection con) {
+			boolean error = false;
+
+			if (con != null) {
+				try {
+					con.close();
+					error = true;
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+
+			return error;
+		}
+
+		/**
+		 * Executes the wished query
+		 */
+		private String doQuery(String queryCode, String queryDescription,
+				String council) throws Exception {
+
+			DBSession dbs = DBSession.getCurrentSession();
+			// Statement st = null;
+			// ResultSet rs = null;
+
+			String[][] tableContent = dbs.getTable("validacion_consultas",
+					"eiel_aplicaciones", "codigo = '" + queryCode + "'");
+			String query = tableContent[0][1];
+			String whereC = tableContent[0][8];
+
+			if (!council.equals(ALL_COUNCILS)) {
+				// sustituir [[WHERE]] por el valor de la columna where y el
+				// codigo adecuado
+				whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]",
+						council.toUpperCase());
+				// whereC =
+				// "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='"
+				// + council +"' limit 1)";
+				query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
+			} else {
+				query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
+			}
+
+			// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This
+			// is to make a quick replace.
+			query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
+
+			return query;
+
+		}
 
 		public String showResultsAsHTML(ArrayList<ResultTableModel> resultMap) {
 			StringBuffer sf = new StringBuffer();
@@ -195,136 +357,6 @@ public class EIELValidationPanel extends gvWindow implements
 			return tables;
 		}
 
-		/**
-		 * Close a ResultSet
-		 * 
-		 * @param rs
-		 *            , the resultset to be closed
-		 * @return true if the resulset was correctly closed. false in any other
-		 *         case
-		 */
-		public boolean closeResultSet(ResultSet rs) {
-			boolean error = false;
-
-			if (rs != null) {
-				try {
-					rs.close();
-					error = true;
-				} catch (SQLException e) {
-					logger.error(e.getMessage(), e);
-				}
-			}
-
-			return error;
-		}
-
-		/**
-		 * Close a Statement
-		 * 
-		 * @param st
-		 *            , the statement to be closed
-		 * @return true if the statement was correctly closed, false in any
-		 *         other case
-		 */
-		public boolean closeStatement(Statement st) {
-			boolean error = false;
-
-			if (st != null) {
-				try {
-					st.close();
-					error = true;
-				} catch (SQLException e) {
-					logger.error(e.getMessage(), e);
-				}
-			}
-
-			return error;
-		}
-
-		/**
-		 * Close a Connection
-		 * 
-		 * @param conn
-		 *            , the connection to be closed
-		 * @return true if the connection was correctly closed, false in any
-		 *         other case
-		 */
-		public boolean closeConnection(Connection con) {
-			boolean error = false;
-
-			if (con != null) {
-				try {
-					con.close();
-					error = true;
-				} catch (SQLException e) {
-					logger.error(e.getMessage(), e);
-				}
-			}
-
-			return error;
-		}
-
-		/**
-		 * Executes the wished query
-		 */
-		private ResultTableModel doQuery(String queryCode,
-				String queryDescription, String council) throws Exception {
-
-			DBSession dbs = DBSession.getCurrentSession();
-			Connection con = null;
-			Statement st = null;
-			ResultSet rs = null;
-			ResultTableModel result = new ResultTableModel(queryCode,
-					queryDescription);
-
-			try {
-
-				String[][] tableContent = dbs.getTable("validacion_consultas",
-						"eiel_aplicaciones", "codigo = '" + queryCode + "'");
-				String query = tableContent[0][1];
-				String whereC = tableContent[0][8];
-
-				result.setQueryTables(getValidationTables(query));
-
-				if (!council.equals(ALL_COUNCILS)) {
-					// sustituir [[WHERE]] por el valor de la columna where y el
-					// codigo adecuado
-					whereC = whereC.replaceAll("\\[\\[DENOMINACI\\]\\]",
-							council.toUpperCase());
-					// whereC =
-					// "	  and municipio = (select municipio	from eiel_map_municipal.municipio where upper(denominaci)='"
-					// + council +"' limit 1)";
-					query = query.replaceAll("\\[\\[WHERE\\]\\]", whereC);
-				} else {
-					query = query.replaceAll("\\[\\[WHERE\\]\\]", "");
-				}
-
-				// [NACHOV] On the LBD all queries refers to OLD_SCHEMA... This
-				// is to make a quick replace.
-				query = query.replaceAll(OLD_SCHEMA, NEW_SCHEMA);
-
-				con = dbs.getJavaConnection();
-				st = con.createStatement();
-				logger.info(result.getCode() + ": " + query);
-				rs = st.executeQuery(query);
-				resultSetToTable(result, rs);
-
-			} catch (SQLException e) {
-				result.setError(true);
-				result.setErroMessage(e.getMessage());
-				logger.error(e.getMessage(), e);
-				sqlError = true;
-				error = e.getMessage();
-				throw new Exception(e.getMessage());
-			} finally {
-				closeResultSet(rs);
-				closeStatement(st);
-				closeConnection(con);
-			}
-			return result;
-
-		}
-
 		private void resultSetToTable(ResultTableModel result, ResultSet rs)
 				throws SQLException {
 			// TODO: don't create empty ResultTableModel
@@ -376,20 +408,43 @@ public class EIELValidationPanel extends gvWindow implements
 			// check validations
 			int count = 0;
 			for (int i = 0; i < model.getRowCount(); i++) {
-				Object isChecked = model.getValueAt(i, 0);
-				if (isChecked instanceof Boolean && (Boolean) isChecked) {
+				try {
+					if (!isCancelled()) {
+						Object isChecked = model.getValueAt(i, 0);
+						if (isChecked instanceof Boolean && (Boolean) isChecked) {
 
-					// Get CODE of the validation
-					String queryCode = (String) model.getValueAt(i, 1);
-					String queryDescription = (String) model.getValueAt(i, 3);
+							// Get CODE of the validation
+							String queryCode = (String) model.getValueAt(i, 1);
+							String queryDescription = (String) model
+									.getValueAt(i, 3);
 
-					ResultTableModel result = doQuery(queryCode,
-							queryDescription, council);
-					resultsMap.add(result);
+							String query = doQuery(queryCode, queryDescription,
+									council);
+							Connection con = dbs.getJavaConnection();
+							thread = new RunStatementThread(con, query);
+							logger.info(queryCode + ": " + query);
+							thread.start();
+							thread.join();
+							ResultTableModel result = new ResultTableModel(
+									queryCode, queryDescription);
+							result.setQueryTables(getValidationTables(query));
+							resultSetToTable(result, thread.getResult());
+							resultsMap.add(result);
 
-					count++;
-					setProgress(count * 100 / getCheckedValidationsCount(model));
-					Thread.sleep(1L);
+							count++;
+							setProgress(count * 100
+									/ getCheckedValidationsCount(model));
+							thread = null;
+						}
+					} else {
+						break;
+					}
+				} catch (InterruptedException e) {
+					System.out.println("Interrupted");
+					if (thread != null) {
+						thread.cancel();
+					}
+					break;
 				}
 			}
 			String html = showResultsAsHTML(resultsMap);
