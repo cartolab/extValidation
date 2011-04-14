@@ -407,6 +407,7 @@ public class EIELValidationPanel extends gvWindow implements
 			ArrayList<ResultTableModel> resultsMap = new ArrayList<ResultTableModel>();
 			// check validations
 			int count = 0;
+			Connection con = null;
 			for (int i = 0; i < model.getRowCount(); i++) {
 				try {
 					if (!isCancelled()) {
@@ -420,7 +421,7 @@ public class EIELValidationPanel extends gvWindow implements
 
 							String query = doQuery(queryCode, queryDescription,
 									council);
-							Connection con = dbs.getJavaConnection();
+							con = dbs.getJavaConnection();
 							thread = new RunStatementThread(con, query);
 							logger.info(queryCode + ": " + query);
 							thread.start();
@@ -445,6 +446,9 @@ public class EIELValidationPanel extends gvWindow implements
 						thread.cancel();
 					}
 					break;
+				} catch (Exception ex) {
+					logger.error(ex.getMessage());
+					con.close();
 				}
 			}
 			String html = showResultsAsHTML(resultsMap);
@@ -644,7 +648,7 @@ public class EIELValidationPanel extends gvWindow implements
 		fillCouncilsCB();
 
 		// modelo CB (it implies validationTB and cuardoCB)
-		modeloCB.setSelectedIndex(1);
+		modeloCB.setSelectedIndex(0);
 
 		fillSchemaCB();
 
