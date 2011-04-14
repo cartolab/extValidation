@@ -253,6 +253,11 @@ public class EIELValidationPanel extends gvWindow implements
 			return error;
 		}
 
+		private String getMPTorWorkModel() {
+			String[] modelos = { "T", "M" };
+			return modelos[modeloCB.getSelectedIndex()];
+		}
+		
 		/**
 		 * Executes the wished query
 		 */
@@ -262,9 +267,11 @@ public class EIELValidationPanel extends gvWindow implements
 			DBSession dbs = DBSession.getCurrentSession();
 			// Statement st = null;
 			// ResultSet rs = null;
-
+			 
+			String whereClause = "codigo = '" + queryCode + "' AND (modelo = 'A' OR modelo = '" + getMPTorWorkModel() + "')";
 			String[][] tableContent = dbs.getTable("validacion_consultas",
-					"eiel_aplicaciones", "codigo = '" + queryCode + "'");
+					"eiel_aplicaciones", whereClause);
+			
 			String query = tableContent[0][1];
 			String whereC = tableContent[0][8];
 
