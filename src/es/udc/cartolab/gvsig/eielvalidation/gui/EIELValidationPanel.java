@@ -346,20 +346,17 @@ public class EIELValidationPanel extends gvWindow implements
 			List<String> tables = new ArrayList<String>();
 
 			query = query.replaceAll("\"", "");
-			int next = query.indexOf(OLD_SCHEMA);
+			int next = query.indexOf(NEW_SCHEMA);
 			while (next >= 0) {
 				int toIndex = query.indexOf(' ', next);
-				String table = query.substring(next + OLD_SCHEMA.length() + 1,
+				String table = query.substring(next + NEW_SCHEMA.length() + 1,
 						toIndex);
 				if (!tables.contains(table)) {
 					tables.add(table);
 				}
-				next = query.indexOf(OLD_SCHEMA, toIndex);
+				next = query.indexOf(NEW_SCHEMA, toIndex);
 			}
 
-			for (String table : tables) {
-				System.out.println("Table: " + table);
-			}
 
 			return tables;
 		}
