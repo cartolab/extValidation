@@ -309,9 +309,8 @@ public class EIELValidationPanel extends gvWindow implements
 				} else {
 					if (result.getValidationFailure()) {
 						sf.append("<p style=\"color: red\">"
-								+ PluginServices
-										.getText(this, "validationFail") + " "
-								+ result.getQueryTables() + "</p>");
+								+ String.format(PluginServices.getText(this, "validationFail"), result.getNumberOfErrors(),result.getQueryTables())
+								+ "</p>");
 						sf.append(result.getHTML());
 					} else {
 						sf.append("<p style=\"color: green\">"
@@ -387,6 +386,7 @@ public class EIELValidationPanel extends gvWindow implements
 
 			if (errorsFound > oldErrors) {
 				validationsFail++;
+				result.setNumberOfErrors(errorsFound-oldErrors);
 				result.setValidationFailure(true);
 				result.setTableNameFailure(metaData.getTableName(1));
 			} else {

@@ -39,6 +39,7 @@ public class ResultTableModel extends DefaultTableModel {
 	private String errorMessage = "";
 	private boolean error = false;
 	private List<String> tables;
+	private int numberOfErrors;
 
 	public ResultTableModel(String code, String description) {
 		super();
@@ -168,6 +169,14 @@ public class ResultTableModel extends DefaultTableModel {
 		html = html + "</table>";
 
 		return html;
+	}
+
+	public void setNumberOfErrors(int numberOfErrors) {
+	    this.numberOfErrors = numberOfErrors;
+	}
+	
+	public int getNumberOfErrors() {
+	    return numberOfErrors;
 	}
 
 }
