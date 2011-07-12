@@ -90,7 +90,7 @@ public class gvWindow extends JPanel implements IWindow {
 	}
 
 	public Object getWindowProfile() {
-		return null;
+		return WindowInfo.EDITOR_PROFILE;
 	}
 
 	public void open() {
